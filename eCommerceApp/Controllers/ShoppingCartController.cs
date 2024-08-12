@@ -43,5 +43,17 @@ namespace eCommerceApp.Controllers
             _shoppingCartService.UpdateItemQuantity(userId, cartItemId, quantity);
             return RedirectToAction("Index");
         }
+
+        public decimal CalculateTotalPrice(string userId)
+        {
+            var cart = GetCartByUserId(userId);
+            return cart.Sum(item => item.Product.Price * item.Quantity);
+        }
+
+        
+
+
+
+
     }
 }

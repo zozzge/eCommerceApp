@@ -1,7 +1,43 @@
-﻿@*
+﻿@model IEnumerable<ShoppingCart>
+
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
 }
 
-<h1>Hello Shopping Cart</h1>
+<h1>My Shopping Cart</h1>
+
+<div class="album py-5 bg-light">
+    <div class="container">
+        <p class="lead text-muted">Total Price: $@ViewBag.TotalPrice</p> <!-- Display total price -->
+
+        <div class="row">
+            @foreach (var item in Model)
+            {
+                <div class="col-md-4">
+                    <div class="card mb-4 box-shadow">
+                        <img class="card-img-top" data-src="holder.js/100px225?theme=thumb&bg=55595c&fg=eceeef&text=Thumbnail" alt="Card image cap">
+                        <div class="card-body">
+                            <p class="card-text">
+                                @item.Product.Name <!-- Replace with your actual product name -->
+                                <br>Price: $@item.Product.Price <!-- Replace with your actual product price -->
+                                <br>Quantity: @item.ShoppingCartItem.Quantity
+                            </p>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">Add</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                                </div>
+                            <small class="text-muted">Quantity: @item.ShoppingCartItem.Quantity</small>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+        <!-- Payment Button -->
+        <form method="post" action="@Url.Action("Checkout", "ShoppingCart")">
+            <button type="submit" class="btn btn-primary">Proceed to Payment</button>
+        </form>
+    </div>

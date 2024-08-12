@@ -1,4 +1,5 @@
-﻿using eCommerceApp.Services;
+﻿using eCommerceApp.Models;
+using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eCommerceApp.Controllers
@@ -14,7 +15,7 @@ namespace eCommerceApp.Controllers
 
         public IActionResult Index()
         {
-            var products = _productService.GetAllProducts();
+            List<Product> products = (List<Product>)_productService.GetAllProducts();
             return View(products);
         }
     }
