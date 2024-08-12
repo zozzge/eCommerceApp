@@ -14,12 +14,12 @@ namespace eCommerceApp.Services
 
         public IEnumerable<Product> GetAllProducts()
         {
-            return _context.Products.ToList();
+            return _context.Product.ToList();
         }
 
         public Product GetProductById(int productId)
         {
-            return _context.Products.Find(productId);
+            return _context.Product.Find(productId);
         }
     }
 }

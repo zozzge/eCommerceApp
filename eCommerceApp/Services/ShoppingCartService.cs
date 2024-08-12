@@ -16,7 +16,7 @@ namespace eCommerceApp.Services
 
         public ShoppingCart GetCartByUserId(string userId)
         {
-            return _context.ShoppingCarts
+            return _context.ShoppingCart
                 .Include(sc => sc.Items)
                 .ThenInclude(sci => sci.ProductId)
                 .FirstOrDefault(sc => sc.UserId == userId);
@@ -28,14 +28,14 @@ namespace eCommerceApp.Services
             if (cart == null)
             {
                 cart = new ShoppingCart { UserId = userId };
-                _context.ShoppingCarts.Add(cart);
+                _context.ShoppingCart.Add(cart);
             }
 
             var existingItem = cart.Items.FirstOrDefault(item => item.ProductId == productId);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
-                existingItem.UnitPrice = _context.Products.Find(productId).Price;
+                existingItem.UnitPrice = _context.Product.Find(productId).Price;
             }
             else
             {
@@ -43,7 +43,7 @@ namespace eCommerceApp.Services
                 {
                     ProductId = productId,
                     Quantity = quantity,
-                    UnitPrice = _context.Products.Find(productId).Price
+                    UnitPrice = _context.Product.Find(productId).Price
                 });
             }
 

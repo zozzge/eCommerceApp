@@ -14,12 +14,12 @@ namespace eCommerceApp.Services
 
         public IEnumerable<User> GetAllUsers()
         {
-            return _context.Users.ToList();
+            return _context.User.ToList();
         }
 
         public User GetUserById(string userId)
         {
-            return _context.Users.Find(userId);
+            return _context.User.Find(userId);
         }
     }
 }
