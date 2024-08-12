@@ -22,18 +22,26 @@
                             <p class="card-text">
                                 @item.Product.Name <!-- Replace with your actual product name -->
                                 <br>Price: $@item.Product.Price <!-- Replace with your actual product price -->
-                                <br>Quantity: @item.ShoppingCartItem.Quantity
                             </p>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Add</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                            <!-- Form for updating quantity -->
+                            <form method="post" action="@Url.Action("UpdateCartItemQuantity", "ShoppingCart")">
+                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                <input type="hidden" name="productId" value="@item.Product.Id" />
+
+                                <div class="d-flex align-items-center">
+                                    <button type="submit" name="quantity" value="Decrement" class="btn btn-outline-secondary">-</button>
+                                    <input type="text" class="form-control text-center" name="quantity" value="@item.ShoppingCartItem.Quantity" readonly />
+                                    <button type="submit" name="quantity" value="Increment" class="btn btn-outline-secondary">+</button>
                                 </div>
-                            <small class="text-muted">Quantity: @item.ShoppingCartItem.Quantity</small>
+                            </form>
+                            <form method="post" action="@Url.Action("RemoveFromCart", "ShoppingCart")">
+                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button>
+                            </form>
                         </div>
                     </div>
                 </div>
             }
-
         </div>
 
         <!-- Payment Button -->

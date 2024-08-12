@@ -1,6 +1,7 @@
 ﻿using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace eCommerceApp.Controllers
 {
@@ -46,14 +47,9 @@ namespace eCommerceApp.Controllers
 
         public decimal CalculateTotalPrice(string userId)
         {
-            var cart = GetCartByUserId(userId);
-            return cart.Sum(item => item.Product.Price * item.Quantity);
+            var cart = _shoppingCartService.GetCartByUserId(userId);
+
+            return cart.Items.Sum(item => item.UnitPrice * item.Quantity);
         }
-
-        
-
-
-
-
     }
 }
