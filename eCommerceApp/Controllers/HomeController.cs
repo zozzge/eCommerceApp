@@ -1,14 +1,23 @@
+using eCommerceApp.Data;
 using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace eCommerceApp.Controllers
 {
     public class HomeController : Controller
     {
+
+        private readonly ShoppingCartService _shoppingCartService;
+        private readonly ApplicationDbContext _context;
+
+
         private readonly ILogger<HomeController> _logger;
         private readonly ProductService _productService;
+        private string userId;
+
         public HomeController(ILogger<HomeController> logger, ProductService productService)
         {
             _logger = logger;
@@ -18,6 +27,20 @@ namespace eCommerceApp.Controllers
         public IActionResult Index()
         {
             List<Product> products = (List<Product>)_productService.GetAllProducts();
+
+            //foreach (var product in products)
+            //{
+            //    var cartItem = shoppingCartItems.FirstOrDefault(item => item.ProductId == product.Id);
+            //    if (cartItem != null)
+            //    {
+            //        product.QuantityInCart = cartItem.Quantity;
+            //    }
+            //    else
+            //    {
+            //        product.QuantityInCart = 0;
+            //    }
+            //}
+
             return View(products);
         }
 
@@ -33,3 +56,5 @@ namespace eCommerceApp.Controllers
         }
     }
 }
+
+

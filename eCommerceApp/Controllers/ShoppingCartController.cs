@@ -1,6 +1,8 @@
-﻿using eCommerceApp.Models;
+﻿using eCommerceApp.Data;
+using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace eCommerceApp.Controllers
@@ -8,16 +10,24 @@ namespace eCommerceApp.Controllers
     public class ShoppingCartController:Controller
     {
         private readonly ShoppingCartService _shoppingCartService;
+        private readonly ApplicationDbContext _context;
 
-        public ShoppingCartController(ShoppingCartService shoppingCartService)
+        public ShoppingCartController(ShoppingCartService shoppingCartService, ApplicationDbContext context)
         {
             _shoppingCartService = shoppingCartService;
+            _context = context;
         }
 
         public IActionResult Index()
         {
-            var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-            var cart = _shoppingCartService.GetCartByUserId(userId);
+            var userId = User.Identity.Name;
+            var cart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .ThenInclude(si => si.Product)
+                               .FirstOrDefault(sc => sc.UserId == userId);
+
+              // Assuming the user is authenticated and their username is used as UserId
+            
             return View(cart);
         }
 
@@ -25,7 +35,7 @@ namespace eCommerceApp.Controllers
         public IActionResult AddToCart(int productId, int quantity)
         {
             var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-            _shoppingCartService.AddItemToCart(userId, productId, quantity);
+            _shoppingCartService.AddItemToCart(userId, productId, 0);
             return RedirectToAction("Index");
         }
 
@@ -47,7 +57,10 @@ namespace eCommerceApp.Controllers
 
         public decimal CalculateTotalPrice(string userId)
         {
-            var cart = _shoppingCartService.GetCartByUserId(userId);
+            var cart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .ThenInclude(si => si.Product)
+                               .FirstOrDefault(sc => sc.UserId == userId);
 
             return cart.Items.Sum(item => item.UnitPrice * item.Quantity);
         }

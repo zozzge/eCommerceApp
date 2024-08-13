@@ -14,6 +14,7 @@ namespace eCommerceApp.Data
         public DbSet<ShoppingCart> ShoppingCart { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItem { get; set; }
         public DbSet<User> User { get; set; }
+        public IEnumerable<object> ShoppingCartItems { get; internal set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -34,6 +35,16 @@ namespace eCommerceApp.Data
                 .OnDelete(DeleteBehavior.Restrict); // Adjust delete behavior as needed
 
             // Note: If Product has a navigation property to ShoppingCartItems, configure it here as well
+
+            //modelBuilder.Entity<ShoppingCartItem>()
+            //.HasOne(si => si.Product)
+            //.WithMany(p => p.ShoppingCartItem)
+            //.HasForeignKey(si => si.ProductId);
+
+            //modelBuilder.Entity<ShoppingCartItem>()
+            //    .HasOne(si => si.ShoppingCart)
+            //    .WithMany(sc => sc.Items)
+            //    .HasForeignKey(si => si.ShoppingCartId);
         }
 
     }

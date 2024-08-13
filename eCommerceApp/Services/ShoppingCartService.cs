@@ -14,45 +14,72 @@ namespace eCommerceApp.Services
             _context = context;
         }
 
-        public ShoppingCart GetCartByUserId(string userId)
-        {
-            return _context.ShoppingCart
-                .Include(sc => sc.Items)
-                .ThenInclude(sci => sci.ProductId)
-                .FirstOrDefault(sc => sc.UserId == userId);
-        }
+        //public ShoppingCart GetCartByUserId(string userId)
+        //{
+        //    var shoppingCart = _context.ShoppingCart
+        //             .Include(sc => sc.Items) 
+        //             .ThenInclude(si => si.Product) 
+        //             .FirstOrDefault(sc => sc.UserId == userId);
+
+        //    return shoppingCart;
+        //}
 
         public void AddItemToCart(string userId, int productId, int quantity)
         {
-            var cart = GetCartByUserId(userId);
-            if (cart == null)
+            var shoppingCart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .ThenInclude(si => si.Product)
+                               .FirstOrDefault(sc => sc.UserId == userId);
+
+
+            if (shoppingCart == null)
             {
-                cart = new ShoppingCart { UserId = userId };
-                _context.ShoppingCart.Add(cart);
+                shoppingCart = new ShoppingCart { UserId = userId, Items = new List<ShoppingCartItem>() };
+                _context.ShoppingCart.Add(shoppingCart);
             }
 
-            var existingItem = cart.Items.FirstOrDefault(item => item.ProductId == productId);
+            // Retrieve the product
+            var product = _context.Product.Find(productId);
+
+            if (product == null)
+            {
+                throw new Exception("Product not found");
+            }
+
+            // Check if the product already exists in the shopping cart
+            var existingItem = shoppingCart.Items.FirstOrDefault(i => i.ProductId == productId);
+
             if (existingItem != null)
             {
+                // Update quantity if item already exists
                 existingItem.Quantity += quantity;
-                existingItem.UnitPrice = _context.Product.Find(productId).Price;
             }
             else
             {
-                cart.Items.Add(new ShoppingCartItem
+                // Add new item if not exists
+                var newItem = new ShoppingCartItem
                 {
                     ProductId = productId,
-                    Quantity = quantity,
-                    UnitPrice = _context.Product.Find(productId).Price
-                });
+                    Product = product,
+                    ShoppingCartId = shoppingCart.Id,
+                    ShoppingCart = shoppingCart,
+                    Quantity = quantity
+                };
+
+                shoppingCart.Items.Add(newItem);
             }
 
+            // Save changes to the database
             _context.SaveChanges();
         }
 
         public void RemoveItemFromCart(string userId, int cartItemId)
         {
-            var cart = GetCartByUserId(userId);
+            var cart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .ThenInclude(si => si.Product)
+                               .FirstOrDefault(sc => sc.UserId == userId);
+
             if (cart != null)
             {
                 var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
@@ -66,7 +93,10 @@ namespace eCommerceApp.Services
 
         public void UpdateItemQuantity(string userId, int cartItemId, int quantity)
         {
-            var cart = GetCartByUserId(userId);
+            var cart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .ThenInclude(si => si.Product)
+                               .FirstOrDefault(sc => sc.UserId == userId);
             if (cart != null)
             {
                 var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
