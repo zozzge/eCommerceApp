@@ -31,7 +31,6 @@ namespace eCommerceApp.Services
                                .ThenInclude(si => si.Product)
                                .FirstOrDefault(sc => sc.UserId == userId);
 
-
             if (shoppingCart == null)
             {
                 shoppingCart = new ShoppingCart { UserId = userId, Items = new List<ShoppingCartItem>() };
@@ -62,7 +61,6 @@ namespace eCommerceApp.Services
                     ProductId = productId,
                     Product = product,
                     ShoppingCartId = shoppingCart.Id,
-                    ShoppingCart = shoppingCart,
                     Quantity = quantity
                 };
 
@@ -73,19 +71,23 @@ namespace eCommerceApp.Services
             _context.SaveChanges();
         }
 
+
         public void RemoveItemFromCart(string userId, int cartItemId)
         {
             var cart = _context.ShoppingCart
-                               .Include(sc => sc.Items)
-                               .ThenInclude(si => si.Product)
-                               .FirstOrDefault(sc => sc.UserId == userId);
+                      .Include(sc => sc.Items)
+                      .FirstOrDefault(sc => sc.UserId == userId);
+            //var cartItem = _context.ShoppingCartItem
 
             if (cart != null)
             {
-                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
+                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId); // Ensure 'Id' matches your property
+
                 if (item != null)
                 {
-                    cart.Items.Remove(item);
+                   /* _context.ShoppingCartItems.Remove(item); */// Remove from DbContext
+                    cart.Items.Remove(item); // Remove from list
+                    
                     _context.SaveChanges();
                 }
             }

@@ -35,7 +35,24 @@ namespace eCommerceApp.Controllers
         public IActionResult AddToCart(int productId, int quantity)
         {
             var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-            _shoppingCartService.AddItemToCart(userId, productId, 0);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Handle unauthenticated users
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                _shoppingCartService.AddItemToCart(userId, productId, quantity);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception (log it, show error message, etc.)
+                // For example:
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -43,7 +60,23 @@ namespace eCommerceApp.Controllers
         public IActionResult RemoveFromCart(int cartItemId)
         {
             var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-            _shoppingCartService.RemoveItemFromCart(userId, cartItemId);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Handle unauthenticated users
+                return RedirectToAction("Login", "Account");
+            }
+
+            try
+            {
+                _shoppingCartService.RemoveItemFromCart(userId, cartItemId);
+            }
+            catch (Exception ex)
+            {
+                // Handle exception (log it, show error message, etc.)
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
             return RedirectToAction("Index");
         }
 
