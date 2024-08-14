@@ -112,6 +112,8 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Index", "Products");
             }
 
+            var totalPrice = shoppingCart.Items.Sum(item => item.UnitPrice * item.Quantity);
+            ViewBag.TotalPrice = totalPrice;
             // Process the payment or display the checkout view
             return View(shoppingCart); // Ensure you have a corresponding view for Checkout
         }

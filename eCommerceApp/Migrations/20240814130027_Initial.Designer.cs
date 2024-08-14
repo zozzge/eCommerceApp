@@ -12,8 +12,8 @@ using eCommerceApp.Data;
 namespace eCommerceApp.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240814072553_UpdateSchema")]
-    partial class UpdateSchema
+    [Migration("20240814130027_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

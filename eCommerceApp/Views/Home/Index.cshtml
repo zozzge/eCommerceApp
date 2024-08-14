@@ -1,8 +1,5 @@
 ﻿@model IEnumerable<eCommerceApp.Models.Product>
 
-
-
-
 @{
     ViewData["Title"] = "Products";
 }
@@ -47,14 +44,14 @@
                                     
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
                                 </form>
-                                <form method="post" action="@Url.Action("RemoveFromCart", "ShoppingCart")">
+                                <form method="post" action="@Url.Action("RemoveFromCart", "Product")">
                                     <input type="hidden" name="cartItemId" value="@product.Id" />
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button>
                                 </form>
                             </div>
-                            <small class="text-muted">Price: @product.Price</small>
+                            <strong class="text-muted">Price: @product.Price</strong>
                             <div class="mt-2">
-                                <strong>Quantity in Cart: @product.QuantityInCart</strong>
+                                <small>Quantity in Cart: @product.QuantityInCart</small>
                             </div>
                         </div>
                     </div>
