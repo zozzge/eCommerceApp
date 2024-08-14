@@ -19,6 +19,7 @@ namespace eCommerceApp.Controllers
         }
 
         [HttpGet]
+
         public IActionResult Register()
         {
             return View();

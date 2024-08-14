@@ -26,76 +26,80 @@ namespace eCommerceApp.Controllers
                                .ThenInclude(si => si.Product)
                                .FirstOrDefault(sc => sc.UserId == userId);
 
-              // Assuming the user is authenticated and their username is used as UserId
-            
+            if (cart == null)
+            {
+                return View("EmptyCart");
+            }
+
+            // Calculate total price
+            ViewBag.TotalPrice = cart.Items.Sum(item => item.UnitPrice * item.Quantity);
+
             return View(cart);
         }
 
-        [HttpPost]
-        public IActionResult AddToCart(int productId, int quantity)
-        {
-            var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                // Handle unauthenticated users
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                _shoppingCartService.AddItemToCart(userId, productId, quantity);
-            }
-            catch (Exception ex)
-            {
-                // Handle exception (log it, show error message, etc.)
-                // For example:
-                TempData["ErrorMessage"] = ex.Message;
-            }
-
-            return RedirectToAction("Index");
-        }
 
         [HttpPost]
         public IActionResult RemoveFromCart(int cartItemId)
         {
-            var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
+            var cart = _context.ShoppingCart
+                               .Include(sc => sc.Items)
+                               .FirstOrDefault(sc => sc.UserId == User.Identity.Name);
 
-            if (string.IsNullOrEmpty(userId))
+            if (cart != null)
             {
-                // Handle unauthenticated users
-                return RedirectToAction("Login", "Account");
-            }
-
-            try
-            {
-                _shoppingCartService.RemoveItemFromCart(userId, cartItemId);
-            }
-            catch (Exception ex)
-            {
-                // Handle exception (log it, show error message, etc.)
-                TempData["ErrorMessage"] = ex.Message;
+                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
+                if (item != null)
+                {
+                    cart.Items.Remove(item);
+                    _context.ShoppingCartItems.Remove(item);
+                    _context.SaveChanges();
+                }
             }
 
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public IActionResult UpdateCartItemQuantity(int cartItemId, int quantity)
-        {
-            var userId = User.Identity.Name;  // Assuming the user is authenticated and their username is used as UserId
-            _shoppingCartService.UpdateItemQuantity(userId, cartItemId, quantity);
-            return RedirectToAction("Index");
-        }
-
-        public decimal CalculateTotalPrice(string userId)
+        public IActionResult UpdateItemQuantity(int cartItemId, int quantity)
         {
             var cart = _context.ShoppingCart
                                .Include(sc => sc.Items)
-                               .ThenInclude(si => si.Product)
-                               .FirstOrDefault(sc => sc.UserId == userId);
+                               .FirstOrDefault(sc => sc.UserId == User.Identity.Name);
 
-            return cart.Items.Sum(item => item.UnitPrice * item.Quantity);
+            if (cart != null)
+            {
+                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
+                if (item != null)
+                {
+                    if (quantity <= 0)
+                    {
+                        // Remove item if quantity is 0 or less
+                        _context.ShoppingCartItems.Remove(item);
+                        cart.Items.Remove(item);
+                    }
+                    else
+                    {
+                        // Update quantity
+                        item.Quantity = quantity;
+                    }
+
+                    _context.SaveChanges();
+                }
+            }
+
+            return RedirectToAction("Index");
         }
+
+        public IActionResult Checkout()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            return View();
+        }
+
+
     }
 }
