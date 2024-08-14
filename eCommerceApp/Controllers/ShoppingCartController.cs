@@ -97,7 +97,23 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            return View();
+            var userId = User.Identity.Name;
+
+            // Retrieve the shopping cart for the user
+            var shoppingCart = _context.ShoppingCart
+                .Include(sc => sc.Items)
+                .ThenInclude(si => si.Product)
+                .FirstOrDefault(sc => sc.UserId == userId);
+
+            if (shoppingCart == null || !shoppingCart.Items.Any())
+            {
+                // Handle the case where the cart is empty or doesn't exist
+                TempData["ErrorMessage"] = "Your cart is empty.";
+                return RedirectToAction("Index", "Products");
+            }
+
+            // Process the payment or display the checkout view
+            return View(shoppingCart); // Ensure you have a corresponding view for Checkout
         }
 
 

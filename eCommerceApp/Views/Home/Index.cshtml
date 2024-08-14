@@ -4,7 +4,7 @@
 
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Products";
 }
 
 <section class="jumbotron text-center">
@@ -21,7 +21,7 @@
 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
     <h5 class="my-0 mr-md-auto font-weight-normal">View All Products</h5>
     <nav class="my-2 my-md-0 mr-md-3">
-        <a class="p-2 text-dark" href="/ShoppingCart">
+        <a class="p-2 text-dark" href="@Url.Action("Index", "ShoppingCart")">
             <button type="button" class="btn-basket" onclick="viewCart()">
                 
                 <img src="~/images/market.png" alt="Shopping Cart" style="height: 40px;" />

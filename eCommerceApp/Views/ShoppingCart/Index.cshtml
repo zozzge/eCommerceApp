@@ -1,55 +1,57 @@
-﻿@model IEnumerable<eCommerceApp.Models.Product>
+﻿@model IEnumerable<eCommerceApp.Models.ShoppingCart>
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "My Shopping Cart";
 }
 
 <section class="jumbotron text-center">
     <div class="container">
-        <h1 class="jumbotron-heading">Products</h1>
-        <p class="lead text-muted">Start adding products to your basket.</p>
+        <h1 class="jumbotron-heading">My Shopping Cart</h1>
     </div>
 </section>
 
-<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
-    <h5 class="my-0 mr-md-auto font-weight-normal">View All Products</h5>
-    <nav class="my-2 my-md-0 mr-md-3">
-        <a class="p-2 text-dark" href="/ShoppingCart">
-            <button type="button" class="btn-basket" onclick="viewCart()">
-                <img src="~/images/market.png" alt="Shopping Cart" style="height: 40px;" />
-            </button>
-        </a>
-    </nav>
-</div>
-
-<div class="album py-5 bg-light">
-    <div class="container">
-        <div class="row">
-            @foreach (var product in Model)
+@if (Model.Items.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
             {
-                <div class="col-md-4">
-                    <div class="card mb-4 box-shadow">
-                        <img src="@product.ImageUrl" alt="@product.Name">
-                        <div class="card-body">
-                            <p class="card-text">@product.Description</p>
-                            <div class="btn-group">
-                                <form method="post" action="@Url.Action("AddToCart", "ShoppingCart")">
-                                    <input type="hidden" name="productId" value="@product.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
-                                </form>
-                                <form method="post" action="@Url.Action("RemoveFromCart", "ShoppingCart")">
-                                    <input type="hidden" name="cartItemId" value="@product.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button>
-                                </form>
-                            </div>
-                            <small class="text-muted">Price: @product.Price</small>
-                            <div class="mt-2">
-                                <strong>Quantity in Cart: @product.QuantityInCart</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <tr>
+                    <td>@item.Product.Name</td>
+                    <td>@item.Product.Price.ToString("C")</td>
+                    <td>
+                        <form asp-action="UpdateItemQuantity" method="post">
+                            <input type="hidden" name="cartItemId" value="@item.Id" />
+                            <input type="number" name="quantity" value="@item.Quantity" min="1" />
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </form>
+                    </td>
+                    <td>@item.Price.ToString("C")</td>
+                    <td>
+                        <form asp-action="RemoveFromCart" method="post">
+                            <input type="hidden" name="cartItemId" value="@item.Id" />
+                            <button type="submit" class="btn btn-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
             }
-        </div>
-    </div>
-</div>
+        </tbody>
+    </table>
+
+    <h3>Total Price: @ViewBag.TotalPrice.ToString("C")</h3>
+
+    <a href="@Url.Action("Checkout", "ShoppingCart")" class="btn btn-success">Proceed to Checkout</a>
+}
+else
+{
+    <p>Your cart is empty.</p>
+}
