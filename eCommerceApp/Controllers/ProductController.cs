@@ -118,7 +118,7 @@ namespace eCommerceApp.Controllers
                 shoppingCart.Items.Remove(itemToRemove);
 
                 // Remove the item from the ShoppingCartItems table
-                _context.ShoppingCartItems.Remove(itemToRemove);
+                _context.ShoppingCartItem.Remove(itemToRemove);
 
                 // Save changes to the database
                 _context.SaveChanges();
@@ -131,4 +131,6 @@ namespace eCommerceApp.Controllers
 
             return RedirectToAction("Index", "ShoppingCart"); // Redirect to shopping cart page or any other relevant page
         }
-    } }
+
+    }
+}

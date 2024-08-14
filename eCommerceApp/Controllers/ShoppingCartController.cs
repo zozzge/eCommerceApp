@@ -51,7 +51,7 @@ namespace eCommerceApp.Controllers
                 if (item != null)
                 {
                     cart.Items.Remove(item);
-                    _context.ShoppingCartItems.Remove(item);
+                    _context.ShoppingCartItem.Remove(item);
                     _context.SaveChanges();
                 }
             }
@@ -74,7 +74,7 @@ namespace eCommerceApp.Controllers
                     if (quantity <= 0)
                     {
                         // Remove item if quantity is 0 or less
-                        _context.ShoppingCartItems.Remove(item);
+                        _context.ShoppingCartItem.Remove(item);
                         cart.Items.Remove(item);
                     }
                     else

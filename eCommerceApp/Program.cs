@@ -20,6 +20,8 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
+builder.Services.AddScoped<RegisterService>();
+builder.Services.AddScoped<LoginService>();
 
 var app = builder.Build();
 
