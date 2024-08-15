@@ -90,34 +90,10 @@ namespace eCommerceApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult Checkout()
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Account");
-            }
+        
 
-            var userId = User.Identity.Name;
-
-            // Retrieve the shopping cart for the user
-            var shoppingCart = _context.ShoppingCart
-                .Include(sc => sc.Items)
-                .ThenInclude(si => si.Product)
-                .FirstOrDefault(sc => sc.UserId == userId);
-
-            if (shoppingCart == null || !shoppingCart.Items.Any())
-            {
-                // Handle the case where the cart is empty or doesn't exist
-                TempData["ErrorMessage"] = "Your cart is empty.";
-                return RedirectToAction("Index", "Products");
-            }
-
-            var totalPrice = shoppingCart.Items.Sum(item => item.UnitPrice * item.Quantity);
-            ViewBag.TotalPrice = totalPrice;
-            // Process the payment or display the checkout view
-            return View(shoppingCart); // Ensure you have a corresponding view for Checkout
         }
 
 
-    }
 }
+

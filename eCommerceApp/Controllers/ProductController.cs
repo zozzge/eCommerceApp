@@ -26,24 +26,19 @@ namespace eCommerceApp.Controllers
         [HttpPost]
         public IActionResult AddToCart(int productId, int quantity)
         {
-            var userId = User.Identity.Name;
-            if (string.IsNullOrEmpty(userId))
-            {
-                // Handle the case where the user is not logged in
-                return RedirectToAction("Login", "Account");
-            }
+            var cartId = Request.Cookies["CartId"] ?? Guid.NewGuid().ToString();
+
 
             // Retrieve the shopping cart for the user
             var shoppingCart = _context.ShoppingCart
-                .Include(sc => sc.Items)
-                .FirstOrDefault(sc => sc.UserId == userId);
+            .Include(sc => sc.Items)
+            .FirstOrDefault(sc => sc.Id.ToString() == cartId);
 
             if (shoppingCart == null)
             {
-                // Create a new shopping cart if it doesn't exist
                 shoppingCart = new ShoppingCart
                 {
-                    UserId = userId,
+                    Id = int.Parse(cartId),
                     Items = new List<ShoppingCartItem>()
                 };
                 _context.ShoppingCart.Add(shoppingCart);
@@ -55,8 +50,7 @@ namespace eCommerceApp.Controllers
             if (product == null)
             {
                 // Handle the case where the product does not exist
-                TempData["ErrorMessage"] = "Product not found.";
-                return RedirectToAction("Index", "Products");
+                return Json(new { success = false, message = "Product not found." });
             }
 
             // Check if the product already exists in the shopping cart
@@ -84,23 +78,17 @@ namespace eCommerceApp.Controllers
             // Save changes to the database
             _context.SaveChanges();
 
-            return RedirectToAction("Index", "Products"); // Redirect to products page or any other relevant page
+            return Json(new { success = true});
         }
 
         [HttpPost]
         public IActionResult RemoveFromCart(int productId)
         {
-            var userId = User.Identity.Name;
-            if (string.IsNullOrEmpty(userId))
-            {
-                // Handle the case where the user is not logged in
-                return RedirectToAction("Login", "Account");
-            }
-
-            // Retrieve the shopping cart for the user
+            var cartId = Request.Cookies["CartId"] ?? Guid.NewGuid().ToString();
             var shoppingCart = _context.ShoppingCart
                 .Include(sc => sc.Items)
-                .FirstOrDefault(sc => sc.UserId == userId);
+                .FirstOrDefault(sc => sc.Id.ToString() == cartId);
+
 
             if (shoppingCart == null)
             {
