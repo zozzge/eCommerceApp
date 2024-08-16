@@ -34,17 +34,7 @@ namespace eCommerceApp.Data
                 .HasForeignKey(sci => sci.ProductId)
                 .OnDelete(DeleteBehavior.Restrict); // Adjust delete behavior as needed
 
-            // Note: If Product has a navigation property to ShoppingCartItems, configure it here as well
-
-            //modelBuilder.Entity<ShoppingCartItem>()
-            //.HasOne(si => si.Product)
-            //.WithMany(p => p.ShoppingCartItem)
-            //.HasForeignKey(si => si.ProductId);
-
-            //modelBuilder.Entity<ShoppingCartItem>()
-            //    .HasOne(si => si.ShoppingCart)
-            //    .WithMany(sc => sc.Items)
-            //    .HasForeignKey(si => si.ShoppingCartId);
+            ;
         }
 
     }

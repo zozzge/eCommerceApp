@@ -12,10 +12,10 @@ namespace eCommerceApp.Controllers
             _userService = userService;
         }
 
-        public IActionResult Index()
-        {
-            var users = _userService.GetAllUsers();
-            return View(users);
-        }
+        //public IActionResult Index()
+        //{
+        //    var users = _userService.GetAllUsers();
+        //    return View(users);
+        //}
     }
 }

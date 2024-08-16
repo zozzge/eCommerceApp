@@ -47,7 +47,7 @@ namespace eCommerceApp.Controllers
 
             if (cart != null)
             {
-                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
+                var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
                     cart.Items.Remove(item);
@@ -68,7 +68,7 @@ namespace eCommerceApp.Controllers
 
             if (cart != null)
             {
-                var item = cart.Items.FirstOrDefault(i => i.CartItemId == cartItemId);
+                var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
                     if (quantity <= 0)
@@ -95,5 +95,5 @@ namespace eCommerceApp.Controllers
         }
 
 
-}
+    }
 

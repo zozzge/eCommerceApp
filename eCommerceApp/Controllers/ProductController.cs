@@ -3,6 +3,7 @@ using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace eCommerceApp.Controllers
 {
@@ -23,63 +24,77 @@ namespace eCommerceApp.Controllers
             return View(products);
         }
 
+       
         [HttpPost]
         public IActionResult AddToCart(int productId, int quantity)
         {
-            var cartId = Request.Cookies["CartId"] ?? Guid.NewGuid().ToString();
+            var cartIdCookie = Request.Cookies["CartId"];
+            int cartId;
+            var product = _context.Product.Find(productId);
 
+            if (product == null)
+            {
+                TempData["ErrorMessage"] = "Product not found.";
+                return RedirectToAction("Index", "Products");
+            }
 
-            // Retrieve the shopping cart for the user
+            if (cartIdCookie != null && int.TryParse(cartIdCookie, out cartId))
+            {
+                cartId = int.Parse(cartIdCookie);
+            }
+            else
+            {
+                var newCart = new ShoppingCart
+                {
+                    UserId = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null
+                };
+                _context.ShoppingCart.Add(newCart);
+                _context.SaveChanges();
+                cartId = newCart.Id;
+                Response.Cookies.Append("CartId", cartId.ToString(), new CookieOptions { HttpOnly = true, Expires = DateTimeOffset.Now.AddDays(30) });
+            }
+
             var shoppingCart = _context.ShoppingCart
-            .Include(sc => sc.Items)
-            .FirstOrDefault(sc => sc.Id.ToString() == cartId);
+                .Include(sc => sc.Items) // Ensure Items are included in the query
+                .FirstOrDefault(sc => sc.Id == cartId);
 
             if (shoppingCart == null)
             {
                 shoppingCart = new ShoppingCart
                 {
-                    Id = int.Parse(cartId),
-                    Items = new List<ShoppingCartItem>()
+                    Id = cartId,
+                    UserId = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null
                 };
                 _context.ShoppingCart.Add(shoppingCart);
+                _context.SaveChanges();
             }
 
-            // Retrieve the product
-            var product = _context.Product.Find(productId);
-
-            if (product == null)
-            {
-                // Handle the case where the product does not exist
-                return Json(new { success = false, message = "Product not found." });
-            }
-
-            // Check if the product already exists in the shopping cart
             var existingItem = shoppingCart.Items.FirstOrDefault(i => i.ProductId == productId);
 
             if (existingItem != null)
             {
-                // Update quantity if the item already exists
                 existingItem.Quantity += quantity;
             }
             else
             {
-                // Add a new item if it doesn't exist
                 var newItem = new ShoppingCartItem
                 {
-                    ProductId = productId,
+                    ProductId = product.Id,
                     Product = product,
                     ShoppingCartId = shoppingCart.Id,
-                    Quantity = quantity
+                    Quantity = product.QuantityInCart,
+                    UnitPrice = product.Price
                 };
-
                 shoppingCart.Items.Add(newItem);
+                _context.SaveChanges();
             }
 
             // Save changes to the database
             _context.SaveChanges();
 
-            return Json(new { success = true});
+            return RedirectToAction("Index", "Home");
         }
+
 
         [HttpPost]
         public IActionResult RemoveFromCart(int productId)

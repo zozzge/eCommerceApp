@@ -41,7 +41,6 @@
                             <div class="btn-group">
                                 <form method="post" action="@Url.Action("AddToCart", "Product")">
                                     <input type="hidden" name="productId" value="@product.Id" />
-                                    
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Add</button>
                                 </form>
                                 <form method="post" action="@Url.Action("RemoveFromCart", "Product")">
