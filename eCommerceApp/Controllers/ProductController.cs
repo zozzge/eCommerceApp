@@ -32,6 +32,12 @@ namespace eCommerceApp.Controllers
             int cartId;
             var product = _context.Product.Find(productId);
 
+            if (quantity<=0)
+            {
+                TempData["ErrorMessage"] = "Invalid quantity.";
+                return RedirectToAction("Index", "Products");
+            }
+
             if (product == null)
             {
                 TempData["ErrorMessage"] = "Product not found.";
@@ -40,7 +46,7 @@ namespace eCommerceApp.Controllers
 
             if (cartIdCookie != null && int.TryParse(cartIdCookie, out cartId))
             {
-                cartId = int.Parse(cartIdCookie);
+                //cartId = int.Parse(cartIdCookie);
             }
             else
             {
@@ -71,6 +77,7 @@ namespace eCommerceApp.Controllers
 
             var existingItem = shoppingCart.Items.FirstOrDefault(i => i.ProductId == productId);
 
+
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
@@ -82,7 +89,7 @@ namespace eCommerceApp.Controllers
                     ProductId = product.Id,
                     Product = product,
                     ShoppingCartId = shoppingCart.Id,
-                    Quantity = product.QuantityInCart,
+                    Quantity = quantity,
                     UnitPrice = product.Price
                 };
                 shoppingCart.Items.Add(newItem);

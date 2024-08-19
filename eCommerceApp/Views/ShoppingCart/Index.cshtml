@@ -10,7 +10,7 @@
     </div>
 </section>
 
-@if (Model.Items.Any())
+@if (Model.Items != null && Model.Items.Any())
 {
     <table class="table">
         <thead>
@@ -26,16 +26,16 @@
             @foreach (var item in Model.Items)
             {
                 <tr>
-                    <td>@item.Product.Name</td>
-                    <td>@item.Product.Price.ToString("C")</td>
+                    <td>@item.Product?.Name ?? "Unknown"</td>
+                    <td>@item.Product?.Price.ToString("C") ?? "N/A"</td>
                     <td>
                         <form asp-action="UpdateItemQuantity" method="post">
-                            @* <input type="hidden" name="cartItemId" value="@item.Id" /> *@
+                            <input type="hidden" name="cartItemId" value="@item.Id" />
                             <input type="number" name="quantity" value="@item.Quantity" min="1" />
                             <button type="submit" class="btn btn-primary">Update</button>
                         </form>
                     </td>
-                    <td>@(item.Quantity * item.UnitPrice).ToString("C")</td>
+                    <td>@((item.Quantity ?? 0) * (item.UnitPrice ?? 0)).ToString("C")</td>
                     <td>
                         <form asp-action="RemoveFromCart" method="post">
                             <input type="hidden" name="cartItemId" value="@item.Id" />
@@ -53,5 +53,11 @@
 }
 else
 {
-    <p>Your cart is empty.</p>
+    <section class="jumbotron text-center">
+        <div class="container">
+            <h2 class="jumbotron-heading">Your Shopping Cart is empty</h2>
+            <p>It looks like you have no items in your shopping cart. You can browse our products and add items to your cart to get started.</p>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-primary">Continue Shopping</a>
+        </div>
+    </section>
 }

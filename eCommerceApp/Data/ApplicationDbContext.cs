@@ -22,17 +22,14 @@ namespace eCommerceApp.Data
 
             // Configure ShoppingCart and ShoppingCartItem relationship
             modelBuilder.Entity<ShoppingCart>()
-                .HasMany(sc => sc.Items)
-                .WithOne(sci => sci.ShoppingCart)
-                .HasForeignKey(sci => sci.ShoppingCartId)
-                .OnDelete(DeleteBehavior.Cascade); // Adjust delete behavior as needed
+            .HasMany(sc => sc.Items)
+            .WithOne(si => si.ShoppingCart)
+            .HasForeignKey(si => si.ShoppingCartId);
 
-            // Configure ShoppingCartItem and Product relationship
             modelBuilder.Entity<ShoppingCartItem>()
-                .HasOne(sci => sci.Product)
-                .WithMany() // Assuming Product doesn't need a navigation property back to ShoppingCartItem
-                .HasForeignKey(sci => sci.ProductId)
-                .OnDelete(DeleteBehavior.Restrict); // Adjust delete behavior as needed
+                .HasOne(si => si.Product)
+                .WithMany()
+                .HasForeignKey(si => si.ProductId); // Adjust delete behavior as needed
 
             ;
         }

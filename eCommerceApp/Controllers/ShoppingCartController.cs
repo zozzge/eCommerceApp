@@ -32,7 +32,7 @@ namespace eCommerceApp.Controllers
             }
 
             // Calculate total price
-            ViewBag.TotalPrice = cart.Items.Sum(item => item.UnitPrice * item.Quantity);
+            ViewBag.TotalPrice = cart.Items.Sum(item => (item.UnitPrice ?? 0) * (item.Quantity ?? 0));
 
             return View(cart);
         }
@@ -41,19 +41,16 @@ namespace eCommerceApp.Controllers
         [HttpPost]
         public IActionResult RemoveFromCart(int cartItemId)
         {
-            var cart = _context.ShoppingCart
-                               .Include(sc => sc.Items)
-                               .FirstOrDefault(sc => sc.UserId == User.Identity.Name);
+            var item = _context.ShoppingCartItem
+                       .Include(si => si.ShoppingCart)
+                       .FirstOrDefault(si => si.Id == cartItemId);
 
-            if (cart != null)
+            if (item != null)
             {
-                var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
-                if (item != null)
-                {
-                    cart.Items.Remove(item);
-                    _context.ShoppingCartItem.Remove(item);
-                    _context.SaveChanges();
-                }
+                var cart = item.ShoppingCart;
+                cart.Items.Remove(item);
+                _context.ShoppingCartItem.Remove(item);
+                _context.SaveChanges();
             }
 
             return RedirectToAction("Index");
@@ -62,29 +59,23 @@ namespace eCommerceApp.Controllers
         [HttpPost]
         public IActionResult UpdateItemQuantity(int cartItemId, int quantity)
         {
-            var cart = _context.ShoppingCart
-                               .Include(sc => sc.Items)
-                               .FirstOrDefault(sc => sc.UserId == User.Identity.Name);
+            var item = _context.ShoppingCartItem
+                       .Include(si => si.ShoppingCart)
+                       .FirstOrDefault(si => si.Id == cartItemId);
 
-            if (cart != null)
+            if (item != null)
             {
-                var item = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
-                if (item != null)
+                if (quantity <= 0)
                 {
-                    if (quantity <= 0)
-                    {
-                        // Remove item if quantity is 0 or less
-                        _context.ShoppingCartItem.Remove(item);
-                        cart.Items.Remove(item);
-                    }
-                    else
-                    {
-                        // Update quantity
-                        item.Quantity = quantity;
-                    }
-
-                    _context.SaveChanges();
+                    _context.ShoppingCartItem.Remove(item);
+                    item.ShoppingCart.Items.Remove(item);
                 }
+                else
+                {
+                    item.Quantity = quantity;
+                }
+
+                _context.SaveChanges();
             }
 
             return RedirectToAction("Index");
