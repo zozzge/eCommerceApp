@@ -31,22 +31,22 @@ namespace eCommerceApp.Controllers
             var cartIdCookie = Request.Cookies["CartId"];
             int cartId;
             var product = _context.Product.Find(productId);
-
-            if (quantity<=0)
+            //int quantity1 = quantity + 1;
+            if (quantity <= 0)
             {
                 TempData["ErrorMessage"] = "Invalid quantity.";
-                return RedirectToAction("Index", "Products");
+                return RedirectToAction("Index", "Home");
             }
 
             if (product == null)
             {
                 TempData["ErrorMessage"] = "Product not found.";
-                return RedirectToAction("Index", "Products");
+                return RedirectToAction("Index", "Home");
             }
 
             if (cartIdCookie != null && int.TryParse(cartIdCookie, out cartId))
             {
-                //cartId = int.Parse(cartIdCookie);
+                cartId = int.Parse(cartIdCookie);
             }
             else
             {
@@ -93,7 +93,7 @@ namespace eCommerceApp.Controllers
                     UnitPrice = product.Price
                 };
                 shoppingCart.Items.Add(newItem);
-                _context.SaveChanges();
+                
             }
 
             // Save changes to the database
@@ -116,7 +116,7 @@ namespace eCommerceApp.Controllers
             {
                 // Handle the case where the shopping cart does not exist
                 TempData["ErrorMessage"] = "Shopping cart not found.";
-                return RedirectToAction("Index", "Products");
+                return RedirectToAction("Index", "Home");
             }
 
             // Find the item to remove
@@ -139,7 +139,7 @@ namespace eCommerceApp.Controllers
                 TempData["ErrorMessage"] = "Item not found in cart.";
             }
 
-            return RedirectToAction("Index", "ShoppingCart"); // Redirect to shopping cart page or any other relevant page
+            return RedirectToAction("Index", "Home"); // Redirect to shopping cart page or any other relevant page
         }
 
     }

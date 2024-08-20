@@ -27,9 +27,10 @@ namespace eCommerceApp.Data
             .HasForeignKey(si => si.ShoppingCartId);
 
             modelBuilder.Entity<ShoppingCartItem>()
-                .HasOne(si => si.Product)
-                .WithMany()
-                .HasForeignKey(si => si.ProductId); // Adjust delete behavior as needed
+            .HasOne(si => si.Product)
+            .WithMany()
+            .HasForeignKey(si => si.ProductId)
+            .OnDelete(DeleteBehavior.Restrict); // Adjust delete behavior as needed
 
             ;
         }

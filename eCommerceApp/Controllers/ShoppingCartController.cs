@@ -1,13 +1,158 @@
-﻿using eCommerceApp.Data;
+﻿//using eCommerceApp.Data;
+//using eCommerceApp.Models;
+//using eCommerceApp.Models;
+//using eCommerceApp.Services;
+//using Microsoft.AspNetCore.Mvc;
+//using Microsoft.EntityFrameworkCore;
+//using System;
+//using System.Text.Json;
+
+//namespace eCommerceApp.Controllers
+//{
+//    public class ShoppingCartController:Controller
+//    {
+//        private readonly ShoppingCartService _shoppingCartService;
+//        private readonly ApplicationDbContext _context;
+
+//        public ShoppingCartController(ShoppingCartService shoppingCartService, ApplicationDbContext context)
+//        {
+//            _shoppingCartService = shoppingCartService;
+//            _context = context;
+//        }
+
+//        public ShoppingCart GetCartFromSession()
+//        {
+//            var cartJson = HttpContext.Session.GetString("ShoppingCart");
+//            if (string.IsNullOrEmpty(cartJson))
+//            {
+//                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
+//            }
+//            try
+//            {
+//                return JsonSerializer.Deserialize<ShoppingCart>(cartJson);
+//            }
+//            catch (JsonException)
+//            {
+//                // Handle JSON deserialization errors if needed
+//                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
+//            }
+//        }
+
+//        public void SaveCartToSession(ShoppingCart cart)
+//        {
+//            var cartJson = JsonSerializer.Serialize(cart);
+//            HttpContext.Session.SetString("ShoppingCart", cartJson);
+//        }
+
+//        public IActionResult Index()
+//        {
+//            var cart = GetCartFromSession();
+//            var viewModel = new ShoppingCartViewModel
+//            {
+//                CartId = cart.Id,
+//                Items = cart.Items.Select(item => new ShoppingCartItemViewModel
+//                {
+//                    Id = item.Id,
+//                    ProductName = item.Product?.Name ?? "Unknown", // Handle null Product
+//                    Quantity = item.Quantity ?? 0,
+//                    UnitPrice = item.UnitPrice ?? 0
+//                }).ToList()
+//            };
+
+//            ViewBag.TotalPrice = viewModel.Items.Sum(item => item.TotalPrice);
+
+//            return View(viewModel);
+//        }
+
+//        [HttpPost]
+//        public IActionResult AddToCart(int productId, int quantity)
+//        {
+//            var cart = GetCartFromSession();
+//            var product = _context.Product.Find(productId);
+
+//            if (product == null || quantity <= 0)
+//            {
+//                // Handle error (e.g., product not found or invalid quantity)
+//                TempData["ErrorMessage"] = "Invalid product or quantity.";
+//                return RedirectToAction("Index");
+//            }
+
+//            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+//            if (existingItem != null)
+//            {
+//                existingItem.Quantity += quantity;
+//            }
+//            else
+//            {
+//                var newItem = new ShoppingCartItem
+//                {
+//                    ProductId = cart.Id,
+//                    Product = product,
+//                    Quantity = quantity,
+//                    UnitPrice = product.Price
+//                };
+//                cart.Items.Add(newItem);
+//            }
+
+//            SaveCartToSession(cart);
+
+//            return RedirectToAction("Index");
+//        }
+
+//        [HttpPost]
+//        public IActionResult RemoveFromCart(int cartItemId)
+//        {
+//            var cart = GetCartFromSession();
+//            var itemToRemove = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+
+//            if (itemToRemove != null)
+//            {
+//                cart.Items.Remove(itemToRemove);
+//                SaveCartToSession(cart);
+//            }
+
+//            return RedirectToAction("Index");
+//        }
+
+//        [HttpPost]
+//        public IActionResult UpdateItemQuantity(int cartItemId, int quantity)
+//        {
+//            var cart = GetCartFromSession();
+//            var itemToUpdate = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+
+//            if (itemToUpdate != null)
+//            {
+//                if (quantity <= 0)
+//                {
+//                    cart.Items.Remove(itemToUpdate); // Remove item if quantity is zero or less
+//                }
+//                else
+//                {
+//                    itemToUpdate.Quantity = quantity;
+//                }
+//                SaveCartToSession(cart);
+//            }
+
+//            return RedirectToAction("Index");
+//        }
+//    }
+
+
+//}
+using eCommerceApp.Data;
 using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace eCommerceApp.Controllers
 {
-    public class ShoppingCartController:Controller
+    public class ShoppingCartController : Controller
     {
         private readonly ShoppingCartService _shoppingCartService;
         private readonly ApplicationDbContext _context;
@@ -18,73 +163,195 @@ namespace eCommerceApp.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public ShoppingCart GetCartFromSession()
         {
-            var userId = User.Identity.Name;
-            var cart = _context.ShoppingCart
-                               .Include(sc => sc.Items)
-                               .ThenInclude(si => si.Product)
-                               .FirstOrDefault(sc => sc.UserId == userId);
+            var cartJson = HttpContext.Session.GetString("ShoppingCart");
+            if (string.IsNullOrEmpty(cartJson))
+            {
+                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
+            }
+            try
+            {
+                return JsonSerializer.Deserialize<ShoppingCart>(cartJson);
+            }
+            catch (JsonException)
+            {
+                // Handle JSON deserialization errors if needed
+                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
+            }
+        }
+
+        public void SaveCartToSession(ShoppingCart cart)
+        {
+            var cartJson = JsonSerializer.Serialize(cart);
+            HttpContext.Session.SetString("ShoppingCart", cartJson);
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var cartIdCookie = Request.Cookies["CartId"];
+            if (string.IsNullOrEmpty(cartIdCookie) || !int.TryParse(cartIdCookie, out int cartId))
+            {
+                // Handle case where cartId is missing or invalid
+                return RedirectToAction("Error", "Home"); // Or any error handling
+            }
+
+            var cart = await _context.ShoppingCart
+                .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                .SingleOrDefaultAsync(c => c.Id == cartId);
 
             if (cart == null)
             {
-                return View("EmptyCart");
+                // Handle case where cart is not found
+                return RedirectToAction("Error", "Home"); // Or any error handling
             }
 
-            // Calculate total price
-            ViewBag.TotalPrice = cart.Items.Sum(item => (item.UnitPrice ?? 0) * (item.Quantity ?? 0));
+            var viewModel = new ShoppingCartViewModel
+            {
+                CartId = cart.Id,
+                Items = cart.Items.Select(item => new ShoppingCartItemViewModel
+                {
+                    Id = item.Id,
+                    ProductName = item.Product?.Name ?? "Unknown", // Handle null Product
+                    Quantity = item.Quantity ?? 0,
+                    UnitPrice = item.UnitPrice ?? 0,
+                    TotalPrice = (item.Quantity ?? 0) * (item.UnitPrice ?? 0) // Calculate total price
+                }).ToList()
+            };
 
-            return View(cart);
+            ViewBag.TotalPrice = viewModel.Items.Sum(item => item.TotalPrice);
+
+            return View(viewModel);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int productId, int quantity)
+        {
+            var cartIdCookie = Request.Cookies["CartId"];
+            if (string.IsNullOrEmpty(cartIdCookie) || !int.TryParse(cartIdCookie, out int cartId))
+            {
+                // Handle case where cartId is missing or invalid
+                TempData["ErrorMessage"] = "Invalid cart.";
+                return RedirectToAction("Index");
+            }
+
+            var cart = await _context.ShoppingCart
+                .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                .SingleOrDefaultAsync(c => c.Id == cartId);
+
+            if (cart == null)
+            {
+                // Handle case where cart is not found
+                TempData["ErrorMessage"] = "Cart not found.";
+                return RedirectToAction("Index");
+            }
+
+            var product = await _context.Product.FindAsync(productId);
+
+            if (product == null || quantity <= 0)
+            {
+                // Handle error (e.g., product not found or invalid quantity)
+                TempData["ErrorMessage"] = "Invalid product or quantity.";
+                return RedirectToAction("Index");
+            }
+
+            var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += quantity;
+            }
+            else
+            {
+                var newItem = new ShoppingCartItem
+                {
+                    ProductId = productId,
+                    Product = product,
+                    Quantity = quantity,
+                    UnitPrice = product.Price
+                };
+                cart.Items.Add(newItem);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
 
         [HttpPost]
-        public IActionResult RemoveFromCart(int cartItemId)
+        public async Task<IActionResult> RemoveFromCart(int cartItemId)
         {
-            var item = _context.ShoppingCartItem
-                       .Include(si => si.ShoppingCart)
-                       .FirstOrDefault(si => si.Id == cartItemId);
-
-            if (item != null)
+            var cartIdCookie = Request.Cookies["CartId"];
+            if (string.IsNullOrEmpty(cartIdCookie) || !int.TryParse(cartIdCookie, out int cartId))
             {
-                var cart = item.ShoppingCart;
-                cart.Items.Remove(item);
-                _context.ShoppingCartItem.Remove(item);
-                _context.SaveChanges();
+                // Handle case where cartId is missing or invalid
+                TempData["ErrorMessage"] = "Invalid cart.";
+                return RedirectToAction("Index");
+            }
+
+            var cart = await _context.ShoppingCart
+                .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                .SingleOrDefaultAsync(c => c.Id == cartId);
+
+            if (cart == null)
+            {
+                // Handle case where cart is not found
+                TempData["ErrorMessage"] = "Cart not found.";
+                return RedirectToAction("Index");
+            }
+
+            var itemToRemove = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+            if (itemToRemove != null)
+            {
+                cart.Items.Remove(itemToRemove);
+                await _context.SaveChangesAsync();
             }
 
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public IActionResult UpdateItemQuantity(int cartItemId, int quantity)
+        public async Task<IActionResult> UpdateItemQuantity(int cartItemId, int quantity)
         {
-            var item = _context.ShoppingCartItem
-                       .Include(si => si.ShoppingCart)
-                       .FirstOrDefault(si => si.Id == cartItemId);
+            var cartIdCookie = Request.Cookies["CartId"];
+            if (string.IsNullOrEmpty(cartIdCookie) || !int.TryParse(cartIdCookie, out int cartId))
+            {
+                // Handle case where cartId is missing or invalid
+                TempData["ErrorMessage"] = "Invalid cart.";
+                return RedirectToAction("Index");
+            }
 
-            if (item != null)
+            var cart = await _context.ShoppingCart
+                .Include(c => c.Items)
+                    .ThenInclude(i => i.Product)
+                .SingleOrDefaultAsync(c => c.Id == cartId);
+
+            if (cart == null)
+            {
+                // Handle case where cart is not found
+                TempData["ErrorMessage"] = "Cart not found.";
+                return RedirectToAction("Index");
+            }
+
+            var itemToUpdate = cart.Items.FirstOrDefault(i => i.Id == cartItemId);
+
+            if (itemToUpdate != null)
             {
                 if (quantity <= 0)
                 {
-                    _context.ShoppingCartItem.Remove(item);
-                    item.ShoppingCart.Items.Remove(item);
+                    cart.Items.Remove(itemToUpdate); // Remove item if quantity is zero or less
                 }
                 else
                 {
-                    item.Quantity = quantity;
+                    itemToUpdate.Quantity = quantity;
                 }
-
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             return RedirectToAction("Index");
         }
-
-        
-
-        }
-
-
     }
+}
 

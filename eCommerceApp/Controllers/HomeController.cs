@@ -22,6 +22,7 @@ namespace eCommerceApp.Controllers
         {
             _logger = logger;
             _productService = productService;
+            
         }
 
         public IActionResult Index()
@@ -30,7 +31,7 @@ namespace eCommerceApp.Controllers
 
             //foreach (var product in products)
             //{
-            //    var cartItem = shoppingCartItems.FirstOrDefault(item => item.ProductId == product.Id);
+            //    var cartItem = shoppingCartItem.FirstOrDefault(item => item.ProductId == product.Id);
             //    if (cartItem != null)
             //    {
             //        product.QuantityInCart = cartItem.Quantity;
