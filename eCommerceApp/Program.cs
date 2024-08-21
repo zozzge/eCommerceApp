@@ -2,12 +2,23 @@ using eCommerceApp.Data;
 using eCommerceApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/Account/Login"; // Path to login page
+        options.LogoutPath = "/Account/Logout"; // Path to logout page
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Path for access denied
+    });
+
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
     {

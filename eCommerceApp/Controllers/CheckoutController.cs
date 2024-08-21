@@ -20,6 +20,10 @@ namespace eCommerceApp.Controllers
             _userService = userService;
         }
 
+        public IActionResult CheckOut()
+        {
+            return View();
+        }
         public async Task<IActionResult> Checkout()
         {
             var userId = User.Identity.IsAuthenticated ? User.Identity.Name : null;
@@ -53,7 +57,7 @@ namespace eCommerceApp.Controllers
                 else
                 {
                     // Redirect to Login page with returnUrl parameter
-                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Checkout") });
+                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Payment") });
                 }
             }
             else

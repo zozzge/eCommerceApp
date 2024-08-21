@@ -77,8 +77,7 @@ namespace eCommerceApp.Controllers
                 try
                 {
                     await SignInUserAsync(user);
-                    //await SignInUserAsync(user);
-                    //return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
+                    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
                 }
                 catch (Exception ex)
                 {
@@ -87,10 +86,8 @@ namespace eCommerceApp.Controllers
                     return View(model);
                 }
 
-                // Automatically sign in the user after registration
                 
-
-                return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
+                return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
             }
 
             return View(model);
