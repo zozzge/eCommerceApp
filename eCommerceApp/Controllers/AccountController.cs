@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerceApp.Controllers
 {
@@ -37,7 +38,7 @@ namespace eCommerceApp.Controllers
                 if (user != null)
                 {
                     await SignInUserAsync(user);
-                    return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
+                    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
                 }
 
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -58,6 +59,12 @@ namespace eCommerceApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _context.User.AnyAsync(u => u.Email == model.Email))
+                {
+                    ModelState.AddModelError(string.Empty, "Email already in use.");
+                    return View(model);
+                }
+
                 var user = new User
                 {
                     Email = model.Email,
@@ -67,8 +74,21 @@ namespace eCommerceApp.Controllers
                 _context.User.Add(user);
                 await _context.SaveChangesAsync();
 
+                try
+                {
+                    await SignInUserAsync(user);
+                    //await SignInUserAsync(user);
+                    //return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception or handle the error
+                    ModelState.AddModelError(string.Empty, "An error occurred while creating the account.");
+                    return View(model);
+                }
+
                 // Automatically sign in the user after registration
-                await SignInUserAsync(user);
+                
 
                 return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
             }
@@ -78,10 +98,12 @@ namespace eCommerceApp.Controllers
 
         private async Task SignInUserAsync(User user)
         {
+
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

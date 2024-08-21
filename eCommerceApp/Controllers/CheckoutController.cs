@@ -98,7 +98,7 @@ namespace eCommerceApp.Controllers
                 var user = await RegisterUserAsync(userId);
                 userCart = new ShoppingCart
                 {
-                    UserId = user.Id,
+                    UserId = user.Id.ToString(),
                     Items = new List<ShoppingCartItem>()
                 };
                 _context.ShoppingCart.Add(userCart);
