@@ -49,7 +49,15 @@
 
     <h3>Total Price: @ViewBag.TotalPrice.ToString("C")</h3>
 
-    <a href="@Url.Action("Checkout", "ShoppingCart")" class="btn btn-success">Proceed to Checkout</a>
+    <!-- Redirect to Login if not authenticated -->
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Checkout", "Checkout") })" class="btn btn-success">Proceed to Checkout</a>
+    }
+    else
+    {
+        <a href="@Url.Action("Checkout", "Checkout")" class="btn btn-success">Proceed to Checkout</a>
+    }
 }
 else
 {

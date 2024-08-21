@@ -29,19 +29,7 @@ namespace eCommerceApp.Controllers
         {
             List<Product> products = (List<Product>)_productService.GetAllProducts();
 
-            //foreach (var product in products)
-            //{
-            //    var cartItem = shoppingCartItem.FirstOrDefault(item => item.ProductId == product.Id);
-            //    if (cartItem != null)
-            //    {
-            //        product.QuantityInCart = cartItem.Quantity;
-            //    }
-            //    else
-            //    {
-            //        product.QuantityInCart = 0;
-            //    }
-            //}
-
+            
             return View(products);
         }
 

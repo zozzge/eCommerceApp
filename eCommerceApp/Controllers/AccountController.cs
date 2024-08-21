@@ -3,30 +3,32 @@ using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace eCommerceApp.Controllers
 {
-    public class AccountController:Controller
+    public class AccountController : Controller
     {
         private readonly UserService _userService;
+        private readonly ApplicationDbContext _context;
 
-        public AccountController(UserService userService)
+        public AccountController(UserService userService, ApplicationDbContext context)
         {
             _userService = userService;
+            _context = context;
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -35,7 +37,7 @@ namespace eCommerceApp.Controllers
                 if (user != null)
                 {
                     await SignInUserAsync(user);
-                    return RedirectToAction("Index", "Home");
+                    return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
                 }
 
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
@@ -44,14 +46,43 @@ namespace eCommerceApp.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult Register(string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new User
+                {
+                    Email = model.Email,
+                    PasswordHash = _userService.HashPassword(model.Password) // Ensure secure password hashing
+                };
+
+                _context.User.Add(user);
+                await _context.SaveChangesAsync();
+
+                // Automatically sign in the user after registration
+                await SignInUserAsync(user);
+
+                return Redirect(returnUrl ?? Url.Action("Checkout", "Checkout"));
+            }
+
+            return View(model);
+        }
+
         private async Task SignInUserAsync(User user)
         {
             var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.Email),
-            new Claim(ClaimTypes.NameIdentifier, user.Id)
-            // Add more claims if needed
-        };
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
@@ -67,3 +98,4 @@ namespace eCommerceApp.Controllers
         }
     }
 }
+

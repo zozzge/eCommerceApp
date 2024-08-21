@@ -3,107 +3,64 @@ using eCommerceApp.Models;
 using eCommerceApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace eCommerceApp.Controllers
 {
     public class CheckoutController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserService _userService; // Ensure you have a service for user operations
 
-        public CheckoutController(ApplicationDbContext context)
+        public CheckoutController(ApplicationDbContext context, UserService userService)
         {
             _context = context;
+            _userService = userService;
         }
 
-        public IActionResult Checkout()
+        public async Task<IActionResult> Checkout()
         {
-            // Check if the user is authenticated
             var userId = User.Identity.IsAuthenticated ? User.Identity.Name : null;
 
             if (!User.Identity.IsAuthenticated)
             {
-                // If not authenticated, handle the anonymous cart logic
+                // Handle anonymous cart logic
                 var anonymousCartId = Request.Cookies["CartId"];
                 if (anonymousCartId != null)
                 {
-                    // Retrieve the anonymous cart
-                    var anonymousCart = _context.ShoppingCart
-                        .Include(sc => sc.Items)
-                        .FirstOrDefault(sc => sc.Id.ToString() == anonymousCartId);
+                    var anonymousCart = await GetShoppingCartAsync(anonymousCartId);
 
                     if (anonymousCart != null)
                     {
-                        // If user is not authenticated, create a temporary user cart
                         if (userId == null)
                         {
-                            // Create a temporary cart to hold items until the user logs in
+                            // Store the anonymous cart ID temporarily
                             Response.Cookies.Append("TempCartId", anonymousCartId);
                         }
                         else
                         {
-                            // Handle the authenticated user scenario
-                            var userCart = _context.ShoppingCart
-                                .Include(sc => sc.Items)
-                                .FirstOrDefault(sc => sc.UserId == userId);
-
-                            if (userCart == null)
-                            {
-                                userCart = new ShoppingCart
-                                {
-                                    UserId = userId,
-                                    Items = new List<ShoppingCartItem>()
-                                };
-                                _context.ShoppingCart.Add(userCart);
-                            }
-
-                            // Merge anonymous cart items with user cart
-                            foreach (var item in anonymousCart.Items)
-                            {
-                                var existingItem = userCart.Items.FirstOrDefault(i => i.ProductId == item.ProductId);
-                                if (existingItem != null)
-                                {
-                                    existingItem.Quantity += item.Quantity;
-                                }
-                                else
-                                {
-                                    var newItem = new ShoppingCartItem
-                                    {
-                                        ProductId = item.ProductId,
-                                        Product = item.Product,
-                                        ShoppingCartId = userCart.Id,
-                                        Quantity = item.Quantity
-                                    };
-                                    userCart.Items.Add(newItem);
-                                }
-                            }
-
+                            await HandleAuthenticatedUserAsync(userId, anonymousCart);
                             // Remove the anonymous cart and delete the cookie
                             _context.ShoppingCart.Remove(anonymousCart);
                             Response.Cookies.Delete("CartId");
-
-                            _context.SaveChanges();
-
-                            // Redirect to checkout confirmation page
+                            await _context.SaveChangesAsync();
                             return RedirectToAction("CheckoutConfirmation", "Order");
                         }
                     }
                 }
                 else
                 {
-                    // If there is no anonymous cart and user is not authenticated
-                    return RedirectToAction("Login", "Account");
+                    // Redirect to Login page with returnUrl parameter
+                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Checkout") });
                 }
             }
             else
             {
-                // Handle the case when user is authenticated
-                var userCart = _context.ShoppingCart
-                    .Include(sc => sc.Items)
-                    .FirstOrDefault(sc => sc.UserId == userId);
-
+                var userCart = await GetUserCartAsync(userId);
                 if (userCart != null)
                 {
-                    // Redirect to checkout confirmation page
                     return RedirectToAction("CheckoutConfirmation", "Order");
                 }
                 else
@@ -115,6 +72,75 @@ namespace eCommerceApp.Controllers
 
             // In case no condition is met
             return RedirectToAction("Index", "Products");
+        }
+
+        private async Task<ShoppingCart> GetShoppingCartAsync(string cartId)
+        {
+            return await _context.ShoppingCart
+                .Include(sc => sc.Items)
+                .FirstOrDefaultAsync(sc => sc.Id.ToString() == cartId);
+        }
+
+        private async Task<ShoppingCart> GetUserCartAsync(string userId)
+        {
+            return await _context.ShoppingCart
+                .Include(sc => sc.Items)
+                .FirstOrDefaultAsync(sc => sc.UserId == userId);
+        }
+
+        private async Task HandleAuthenticatedUserAsync(string userId, ShoppingCart anonymousCart)
+        {
+            var userCart = await GetUserCartAsync(userId);
+
+            if (userCart == null)
+            {
+                // Register the user if they don't exist
+                var user = await RegisterUserAsync(userId);
+                userCart = new ShoppingCart
+                {
+                    UserId = user.Id,
+                    Items = new List<ShoppingCartItem>()
+                };
+                _context.ShoppingCart.Add(userCart);
+            }
+
+            // Merge anonymous cart items with user cart
+            foreach (var item in anonymousCart.Items)
+            {
+                var existingItem = userCart.Items.FirstOrDefault(i => i.ProductId == item.ProductId);
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += item.Quantity;
+                }
+                else
+                {
+                    var newItem = new ShoppingCartItem
+                    {
+                        ProductId = item.ProductId,
+                        Product = item.Product,
+                        ShoppingCartId = userCart.Id,
+                        Quantity = item.Quantity,
+                        UnitPrice = item.UnitPrice // Ensure to include the price if needed
+                    };
+                    userCart.Items.Add(newItem);
+                }
+            }
+        }
+
+        private async Task<User> RegisterUserAsync(string email)
+        {
+            var user = new User
+            {
+                Email = email,
+                // Set other user properties as needed
+                PasswordHash = "DefaultPassword" // Set a default or prompt for password
+            };
+
+            // Save the new user to the database
+            _context.User.Add(user);
+            await _context.SaveChangesAsync();
+
+            return user;
         }
     }
 }
