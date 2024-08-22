@@ -3,12 +3,19 @@ using eCommerceApp.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using eCommerceApp.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+//builder.Services.AddIdentity<User, IdentityRole>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>()
+//    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -19,11 +26,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddControllersWithViews();
 
-    {
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-    });
+
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<ShoppingCartService>();
+builder.Services.AddScoped<RegisterService>();
+builder.Services.AddScoped<LoginService>();
+builder.Services.AddScoped<UserService>();
 
 
 // Add session services
@@ -38,12 +48,6 @@ builder.Services.AddSession(options =>
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-
-builder.Services.AddScoped<ProductService>();
-builder.Services.AddScoped<ShoppingCartService>();
-builder.Services.AddScoped<RegisterService>();
-builder.Services.AddScoped<LoginService>();
-builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

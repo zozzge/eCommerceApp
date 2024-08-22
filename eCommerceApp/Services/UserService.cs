@@ -21,11 +21,11 @@ namespace eCommerceApp.Services
         public async Task<User> ValidateUserAsync(string email, string password)
         {
             var user = await _context.User.SingleOrDefaultAsync(u => u.Email == email);
-            if (user == null || !VerifyPasswordHash(password, user.PasswordHash))
+            if (user != null && VerifyPasswordHash(password, user.PasswordHash))
             {
-                return null;
+                return user;
             }
-            return user;
+            return null;
         }
 
         public string HashPassword(string password)

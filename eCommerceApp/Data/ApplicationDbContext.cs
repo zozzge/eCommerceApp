@@ -16,9 +16,17 @@ namespace eCommerceApp.Data
         public DbSet<User> User { get; set; }
         public IEnumerable<object> ShoppingCartItems { get; internal set; }
 
+        public DbSet<PaymentOptions> PaymentOptions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<PaymentOptions>().HasData(
+            new PaymentOptions { Id = 1, Name = "POS Widget", Description = "Pay with your credit card", ImageUrl = "images/images.jpg" },
+            new PaymentOptions { Id = 2, Name = "POS White Label", Description = "Pay with your credit card", ImageUrl = "images/images.jpg" }
+            // Add more payment options as needed
+        );
 
             // Configure ShoppingCart and ShoppingCartItem relationship
             modelBuilder.Entity<ShoppingCart>()

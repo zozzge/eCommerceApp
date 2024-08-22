@@ -5,30 +5,31 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace eCommerceApp.Controllers
 {
-    public class CheckoutController : Controller
+    public class CheckOutController : Controller
     {
         private readonly ApplicationDbContext _context;
         private readonly UserService _userService; // Ensure you have a service for user operations
 
-        public CheckoutController(ApplicationDbContext context, UserService userService)
+        public CheckOutController(ApplicationDbContext context, UserService userService)
         {
             _context = context;
             _userService = userService;
         }
 
-        public IActionResult CheckOut()
+        public IActionResult Index()
         {
             return View();
         }
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult>CheckOut()
         {
-            var userId = User.Identity.IsAuthenticated ? User.Identity.Name : null;
+            var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
 
-            if (!User.Identity.IsAuthenticated)
+            if (userId == null)
             {
                 // Handle anonymous cart logic
                 var anonymousCartId = Request.Cookies["CartId"];
@@ -38,26 +39,16 @@ namespace eCommerceApp.Controllers
 
                     if (anonymousCart != null)
                     {
-                        if (userId == null)
-                        {
-                            // Store the anonymous cart ID temporarily
-                            Response.Cookies.Append("TempCartId", anonymousCartId);
-                        }
-                        else
-                        {
-                            await HandleAuthenticatedUserAsync(userId, anonymousCart);
-                            // Remove the anonymous cart and delete the cookie
-                            _context.ShoppingCart.Remove(anonymousCart);
-                            Response.Cookies.Delete("CartId");
-                            await _context.SaveChangesAsync();
-                            return RedirectToAction("CheckoutConfirmation", "Order");
-                        }
+                        // Store the anonymous cart ID temporarily
+                        Response.Cookies.Append("TempCartId", anonymousCartId);
+                        // Redirect to Login if needed
+                        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Payment", "Payment") });
                     }
                 }
                 else
                 {
                     // Redirect to Login page with returnUrl parameter
-                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Checkout", "Payment") });
+                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Payment", "Payment") });
                 }
             }
             else
@@ -70,12 +61,12 @@ namespace eCommerceApp.Controllers
                 else
                 {
                     // No cart found for the user
-                    return RedirectToAction("Index", "Products");
+                    return RedirectToAction("Index", "Home");
                 }
             }
 
             // In case no condition is met
-            return RedirectToAction("Index", "Products");
+            return RedirectToAction("Index", "Home");
         }
 
         private async Task<ShoppingCart> GetShoppingCartAsync(string cartId)

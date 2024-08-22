@@ -2,7 +2,7 @@
 
 namespace eCommerceApp.Models
 {
-    public class CheckoutViewModel
+    public class PaymentViewModel
     {
         [Required]
         [Display(Name = "Cardholder Name")]

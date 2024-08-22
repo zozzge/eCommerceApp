@@ -21,7 +21,7 @@ namespace eCommerceApp.Controllers
             _context = context;
         }
 
-        [HttpGet]
+       [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -38,13 +38,13 @@ namespace eCommerceApp.Controllers
                 if (user != null)
                 {
                     await SignInUserAsync(user);
-                    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
+                    return Redirect(returnUrl ?? Url.Action("CheckOut", "Checkout"));
                 }
 
                 ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
 
-            return View(model);
+            return  View(model);
         }
 
         [HttpGet]
@@ -74,20 +74,24 @@ namespace eCommerceApp.Controllers
                 _context.User.Add(user);
                 await _context.SaveChangesAsync();
 
-                try
-                {
-                    await SignInUserAsync(user);
-                    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
-                }
-                catch (Exception ex)
-                {
-                    // Log the exception or handle the error
-                    ModelState.AddModelError(string.Empty, "An error occurred while creating the account.");
-                    return View(model);
-                }
+                //try
+                //{
+                //    await SignInUserAsync(user);
+                //    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
+                //}
+                //catch (Exception ex)
+                //{
+                //    // Log the exception or handle the error
+                //    ModelState.AddModelError(string.Empty, "An error occurred while creating the account.");
+                //    return View(model);
+                //}
 
-                
-                return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
+
+                //return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
+
+                await SignInUserAsync(user);
+
+                return Redirect(returnUrl ?? Url.Action("Payment", "Payment"));
             }
 
             return View(model);

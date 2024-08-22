@@ -1,13 +1,13 @@
 ﻿@model PaymentViewModel
 
 @{
-    ViewData["Title"] = "Checkout";
+    ViewData["Title"] = "Payment";
 }
 
 <div class="container">
-    <h1>Checkout</h1>
+    <h1>Payment</h1>
 
-    <form asp-action="Checkout" method="post">
+    <form asp-action="Payment" method="post">
         <div class="form-group">
             <label asp-for="CardholderName"></label>
             <input asp-for="CardholderName" class="form-control" />
