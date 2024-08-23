@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Widget Payment";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <h1>Widget Payment</h1>
+
+        <form asp-action="ProcessWidgetPayment" method="post">
+            <div class="form-group">
+                <label for="CardholderName">Cardholder Name</label>
+                <input type="text" id="CardholderName" name="CardholderName" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="CreditCardNumber">Credit Card Number</label>
+                <input type="text" id="CreditCardNumber" name="CreditCardNumber" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="ExpirationDate">Expiration Date (MM/YY)</label>
+                <input type="text" id="ExpirationDate" name="ExpirationDate" class="form-control" />
+            </div>
+
+            <div class="form-group">
+                <label for="SecurityCode">Security Code</label>
+                <input type="text" id="SecurityCode" name="SecurityCode" class="form-control" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Payment</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

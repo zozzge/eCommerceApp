@@ -27,7 +27,7 @@ namespace eCommerceApp.Controllers
         }
         public async Task<IActionResult>CheckOut()
         {
-            var userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {
@@ -42,13 +42,13 @@ namespace eCommerceApp.Controllers
                         // Store the anonymous cart ID temporarily
                         Response.Cookies.Append("TempCartId", anonymousCartId);
                         // Redirect to Login if needed
-                        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Payment", "Payment") });
+                        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CheckOut", "Checkout") });
                     }
                 }
                 else
                 {
                     // Redirect to Login page with returnUrl parameter
-                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Payment", "Payment") });
+                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CheckOut", "Checkout") });
                 }
             }
             else

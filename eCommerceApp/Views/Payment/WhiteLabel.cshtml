@@ -1,13 +1,13 @@
-﻿@model PaymentViewModel
+﻿@model WhiteLabelViewModel
 
 @{
-    ViewData["Title"] = "Payment";
+    ViewData["Title"] = "WhiteLabel Payment";
 }
 
 <div class="container">
-    <h1>Payment</h1>
+    <h1>WhiteLabel Payment</h1>
 
-    <form asp-action="Payment" method="post">
+    <form asp-action="ProcessWhiteLabelPayment" method="post">
         <div class="form-group">
             <label asp-for="CardholderName"></label>
             <input asp-for="CardholderName" class="form-control" />

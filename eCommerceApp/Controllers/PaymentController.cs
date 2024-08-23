@@ -4,6 +4,7 @@ using eCommerceApp.Models;
 using System.Threading.Tasks;
 using eCommerceApp.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http;
 
 namespace eCommerceApp.Controllers
 {
@@ -14,6 +15,12 @@ namespace eCommerceApp.Controllers
         public PaymentController(ApplicationDbContext context)
         {
             _context = context;
+           
+        }
+
+        public IActionResult Index()
+        {
+            return View();
         }
 
         public async Task<IActionResult> PaymentOptions()
@@ -22,17 +29,12 @@ namespace eCommerceApp.Controllers
             return View(paymentOptions);
         }
 
-        public IActionResult CreditCard()
+        public IActionResult WhiteLabel()
         {
             return View();
         }
 
-        public IActionResult PayPal()
-        {
-            return View();
-        }
-
-        public IActionResult BankTransfer()
+        public IActionResult Widget()
         {
             return View();
         }

@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<eCommerceApp.Models.PaymentOptions>
 
 @{
-    ViewData["Title"] = "Payment Options";
+    ViewData["Title"] = "Check Out";
 }
 
 <!DOCTYPE html>
@@ -20,7 +20,14 @@
                 <div class="list-group">
                     @foreach (var option in Model)
                     {
-                        <a href="@Url.Action(option.Name.Replace(" ", ""), "Payment")" class="list-group-item list-group-item-action">
+                        <h5>@option.Name</h5>
+                        <p>@option.Description</p>
+                        @if (!string.IsNullOrEmpty(option.ImageUrl))
+                        {
+                            <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
+                        }
+
+                        <a href="@Url.Action("SelectPaymentOption", "Payment", new { id = option.Id })" class="list-group-item list-group-item-action">
                             <h5>@option.Name</h5>
                             <p>@option.Description</p>
                             @if (!string.IsNullOrEmpty(option.ImageUrl))
@@ -29,6 +36,12 @@
                             }
                         </a>
                     }
+                </div>
+
+                <!-- Buttons to direct to specific pages -->
+                <div class="mt-3">
+                    <a href="@Url.Action("WhiteLabel", "Payment")" class="btn btn-primary">Pay with WhiteLabel</a>
+                    <a href="@Url.Action("Widget", "Payment")" class="btn btn-secondary">Pay with Widget</a>
                 </div>
             </div>
         </div>

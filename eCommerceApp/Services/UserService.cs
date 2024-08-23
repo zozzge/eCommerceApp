@@ -1,79 +1,43 @@
-﻿using eCommerceApp.Data;
+﻿using Microsoft.AspNetCore.Identity;
 using eCommerceApp.Models;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace eCommerceApp.Services
 {
     public class UserService
     {
-        private readonly ApplicationDbContext _context;
-        
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
 
-        public UserService(ApplicationDbContext context)
+        public UserService(UserManager<User> userManager, SignInManager<User> signInManager)
         {
-            _context = context;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
-        public async Task<User> ValidateUserAsync(string email, string password)
+        // Register a new user
+        public async Task<IdentityResult> RegisterAsync(RegisterViewModel model)
         {
-            var user = await _context.User.SingleOrDefaultAsync(u => u.Email == email);
-            if (user != null && VerifyPasswordHash(password, user.PasswordHash))
+            var user = new User
             {
-                return user;
-            }
-            return null;
+                UserName = model.Email,
+                Email = model.Email
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            return result;
         }
 
-        public string HashPassword(string password)
+        // Sign in an existing user
+        public async Task<SignInResult> SignInAsync(LoginViewModel model)
         {
-            var salt = GenerateSalt();
-            var hash = ComputeHash(password, salt);
-            return $"{salt}.{hash}";
+            return await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
         }
 
-        private bool VerifyPasswordHash(string password, string storedHash)
+        // Sign out the current user
+        public async Task SignOutAsync()
         {
-            if (string.IsNullOrEmpty(storedHash))
-            {
-                return false; // No hash stored, invalid
-            }
-
-            var parts = storedHash.Split('.');
-            if (parts.Length != 2)
-            {
-                return false; // Invalid format
-            }
-
-            var salt = parts[0];
-            var hash = parts[1];
-
-            var computedHash = ComputeHash(password, salt);
-            return hash == computedHash;
-        }
-
-        private string ComputeHash(string password, string salt)
-        {
-            var hashBytes = KeyDerivation.Pbkdf2(
-                password: password,
-                salt: Convert.FromBase64String(salt),
-                prf: KeyDerivationPrf.HMACSHA256,
-                iterationCount: 10000,
-                numBytesRequested: 32);
-            return Convert.ToBase64String(hashBytes);
-        }
-
-        private string GenerateSalt()
-        {
-            var saltBytes = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(saltBytes);
-            }
-            return Convert.ToBase64String(saltBytes);
+            await _signInManager.SignOutAsync();
         }
     }
 }

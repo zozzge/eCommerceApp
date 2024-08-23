@@ -1,27 +1,26 @@
-﻿using eCommerceApp.Data;
-using eCommerceApp.Models;
+﻿using eCommerceApp.Models;
 using eCommerceApp.Services;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace eCommerceApp.Controllers
 {
     public class AccountController : Controller
     {
+        
         private readonly UserService _userService;
-        private readonly ApplicationDbContext _context;
 
-        public AccountController(UserService userService, ApplicationDbContext context)
+        public AccountController( UserService userService)
         {
+            
             _userService = userService;
-            _context = context;
         }
 
-       [HttpGet]
+        [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -33,18 +32,23 @@ namespace eCommerceApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await _userService.ValidateUserAsync(model.Email, model.Password);
+                var result = await _userService.SignInAsync(model);
 
-                if (user != null)
+                if (result.Succeeded)
                 {
-                    await SignInUserAsync(user);
                     return Redirect(returnUrl ?? Url.Action("CheckOut", "Checkout"));
                 }
-
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                else if (result.IsLockedOut)
+                {
+                    return View("Lockout");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                }
             }
 
-            return  View(model);
+            return View(model);
         }
 
         [HttpGet]
@@ -59,66 +63,34 @@ namespace eCommerceApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _context.User.AnyAsync(u => u.Email == model.Email))
+                var result = await _userService.RegisterAsync(model);
+
+                if (result.Succeeded)
                 {
-                    ModelState.AddModelError(string.Empty, "Email already in use.");
-                    return View(model);
+                    var loginModel = new LoginViewModel
+                    {
+                        Email = model.Email,
+                        Password = model.Password
+                    };
+
+                    await _userService.SignInAsync(loginModel);
+                    return Redirect(returnUrl ?? Url.Action("Login", "Account"));
                 }
 
-                var user = new User
+                foreach (var error in result.Errors)
                 {
-                    Email = model.Email,
-                    PasswordHash = _userService.HashPassword(model.Password) // Ensure secure password hashing
-                };
-
-                _context.User.Add(user);
-                await _context.SaveChangesAsync();
-
-                //try
-                //{
-                //    await SignInUserAsync(user);
-                //    return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
-                //}
-                //catch (Exception ex)
-                //{
-                //    // Log the exception or handle the error
-                //    ModelState.AddModelError(string.Empty, "An error occurred while creating the account.");
-                //    return View(model);
-                //}
-
-
-                //return Redirect(returnUrl ?? Url.Action("Checkout", "Payment"));
-
-                await SignInUserAsync(user);
-
-                return Redirect(returnUrl ?? Url.Action("Payment", "Payment"));
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             return View(model);
         }
 
-        private async Task SignInUserAsync(User user)
-        {
-
-
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-        }
-
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await _userService.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
     }
 }
-

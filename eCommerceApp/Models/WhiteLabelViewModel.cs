@@ -2,7 +2,7 @@
 
 namespace eCommerceApp.Models
 {
-    public class PaymentViewModel
+    public class WhiteLabelViewModel
     {
         [Required]
         [Display(Name = "Cardholder Name")]

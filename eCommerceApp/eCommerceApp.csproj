@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\LoginService.cs" />
+    <Compile Remove="Services\RegisterService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Views\Payment\CheckOut.cshtml" />
     <Content Remove="Views\ShoppingCart\CheckOut.cshtml" />
   </ItemGroup>
