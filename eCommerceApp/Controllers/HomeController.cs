@@ -43,7 +43,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var userCart = await _shoppingCartService.GetCartByUserIdAsync(userId);
+            var userCart = await _shoppingCartService.GetCartByUserIdAsync();
             if (userCart != null && userCart.Items.Any())
             {
                 return RedirectToAction("CheckOut", "Checkout");

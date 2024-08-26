@@ -13,20 +13,25 @@ namespace eCommerceApp.Controllers
     public class CheckOutController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserService _userService; // Ensure you have a service for user operations
+        private readonly UserService _userService;
+        private readonly ShoppingCartService _shoppingCartService;
 
-        public CheckOutController(ApplicationDbContext context, UserService userService)
+        public CheckOutController(ApplicationDbContext context, UserService userService, ShoppingCartService shoppingCartService)
         {
             _context = context;
             _userService = userService;
+            _shoppingCartService = shoppingCartService;
         }
 
         public IActionResult Index()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return View();
         }
-        public async Task<IActionResult>CheckOut()
+
+        public async Task<IActionResult> CheckOut()
         {
+            var paymentOptions = await _context.PaymentOptions.ToListAsync();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (userId == null)
@@ -42,21 +47,28 @@ namespace eCommerceApp.Controllers
                         // Store the anonymous cart ID temporarily
                         Response.Cookies.Append("TempCartId", anonymousCartId);
                         // Redirect to Login if needed
-                        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CheckOut", "Checkout") });
+                        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Checkout") });
                     }
                 }
                 else
                 {
                     // Redirect to Login page with returnUrl parameter
-                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("CheckOut", "Checkout") });
+                    return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Checkout") });
                 }
             }
             else
             {
-                var userCart = await GetUserCartAsync(userId);
+                var userCart = await _shoppingCartService.GetCartByUserIdAsync();
+
+                //?????
                 if (userCart != null)
                 {
-                    return RedirectToAction("CheckoutConfirmation", "Order");
+                    var totalPrice = userCart.Items.Sum(item => item.Quantity * item.UnitPrice);
+
+                    // Pass the cart and total price to the view
+                    ViewBag.TotalPrice = totalPrice;
+
+                    return View("CheckOut", paymentOptions);
                 }
                 else
                 {
@@ -76,27 +88,20 @@ namespace eCommerceApp.Controllers
                 .FirstOrDefaultAsync(sc => sc.Id.ToString() == cartId);
         }
 
-        private async Task<ShoppingCart> GetUserCartAsync(string userId)
-        {
-            return await _context.ShoppingCart
-                .Include(sc => sc.Items)
-                .FirstOrDefaultAsync(sc => sc.UserId == userId);
-        }
-
         private async Task HandleAuthenticatedUserAsync(string userId, ShoppingCart anonymousCart)
         {
-            var userCart = await GetUserCartAsync(userId);
+            var userCart = await _shoppingCartService.GetCartByUserIdAsync();
 
             if (userCart == null)
             {
-                // Register the user if they don't exist
-                var user = await RegisterUserAsync(userId);
+                // Create a new shopping cart for the user if none exists
                 userCart = new ShoppingCart
                 {
-                    UserId = user.Id.ToString(),
+                    UserId = userId,
                     Items = new List<ShoppingCartItem>()
                 };
                 _context.ShoppingCart.Add(userCart);
+                await _context.SaveChangesAsync();
             }
 
             // Merge anonymous cart items with user cart
@@ -120,22 +125,8 @@ namespace eCommerceApp.Controllers
                     userCart.Items.Add(newItem);
                 }
             }
-        }
 
-        private async Task<User> RegisterUserAsync(string email)
-        {
-            var user = new User
-            {
-                Email = email,
-                // Set other user properties as needed
-                PasswordHash = "DefaultPassword" // Set a default or prompt for password
-            };
-
-            // Save the new user to the database
-            _context.User.Add(user);
             await _context.SaveChangesAsync();
-
-            return user;
         }
     }
 }

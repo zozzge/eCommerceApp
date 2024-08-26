@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using eCommerceApp.Models;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace eCommerceApp.Services
 {
@@ -8,11 +9,13 @@ namespace eCommerceApp.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(UserManager<User> userManager, SignInManager<User> signInManager)
+        public UserService(UserManager<User> userManager, SignInManager<User> signInManager, IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Register a new user
@@ -31,12 +34,19 @@ namespace eCommerceApp.Services
         // Sign in an existing user
         public async Task<SignInResult> SignInAsync(LoginViewModel model)
         {
-            return await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+            if (result.Succeeded)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                _httpContextAccessor.HttpContext.Session.SetString("UserId", user.Id.ToString());
+            }
+            return result;
         }
 
         // Sign out the current user
         public async Task SignOutAsync()
         {
+            _httpContextAccessor.HttpContext.Session.Remove("UserId");
             await _signInManager.SignOutAsync();
         }
     }

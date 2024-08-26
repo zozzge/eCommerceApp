@@ -11,12 +11,12 @@ namespace eCommerceApp.Controllers
 {
     public class AccountController : Controller
     {
-        
+
         private readonly UserService _userService;
 
-        public AccountController( UserService userService)
+        public AccountController(UserService userService)
         {
-            
+
             _userService = userService;
         }
 
@@ -36,7 +36,7 @@ namespace eCommerceApp.Controllers
 
                 if (result.Succeeded)
                 {
-                    return Redirect(returnUrl ?? Url.Action("CheckOut", "Checkout"));
+                    return Redirect(returnUrl ?? Url.Action("Index", "Checkout"));
                 }
                 else if (result.IsLockedOut)
                 {

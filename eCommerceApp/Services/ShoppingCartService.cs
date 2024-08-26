@@ -3,32 +3,69 @@ using eCommerceApp.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace eCommerceApp.Services
 {
     public class ShoppingCartService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string ShoppingCartSessionKey = "ShoppingCart";
 
-        public ShoppingCartService(ApplicationDbContext context)
+        public ShoppingCartService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        // Get the user's cart based on user ID
-        public async Task<ShoppingCart> GetCartByUserIdAsync(string userId)
+        private HttpContext HttpContext => _httpContextAccessor.HttpContext;
+
+        private string GetUserId()
         {
-            return await _context.ShoppingCart
-                                 .Include(sc => sc.Items)
-                                 .ThenInclude(si => si.Product)
-                                 .FirstOrDefaultAsync(sc => sc.UserId == userId);
+            return HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
-        // Add an item to the cart
-        public async Task AddItemToCartAsync(string userId, int productId, int quantity)
+        public async Task<ShoppingCart> GetCartByUserIdAsync()
         {
-            var shoppingCart = await GetCartByUserIdAsync(userId);
+            var userId = GetUserId(); // Kullanıcı ID'sini doğru bir şekilde alın
+            if (string.IsNullOrEmpty(userId))
+            {
+                return null;
+            }
+
+            var sessionCart = GetCartFromSession();
+            if (sessionCart != null && sessionCart.UserId == userId)
+            {
+                return sessionCart;
+            }
+
+            var cart = await _context.ShoppingCart
+                                     .Include(sc => sc.Items)
+                                     .ThenInclude(si => si.Product)
+                                     .FirstOrDefaultAsync(sc => sc.UserId == userId);
+
+            if (cart != null)
+            {
+                SaveCartToSession(cart); // Cache in session
+            }
+
+            return cart ?? new ShoppingCart { UserId = userId };
+        }
+
+        public async Task AddItemToCartAsync(int productId, int quantity)
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("User not logged in.");
+            }
+
+            var shoppingCart = await GetCartByUserIdAsync();
 
             if (shoppingCart == null)
             {
@@ -59,20 +96,25 @@ namespace eCommerceApp.Services
                 {
                     ProductId = productId,
                     Product = product,
-                    ShoppingCartId = shoppingCart.Id,
                     Quantity = quantity,
-                    UnitPrice = product.Price // Assuming you want to store unit price
+                    UnitPrice = product.Price
                 };
                 shoppingCart.Items.Add(newItem);
             }
 
             await _context.SaveChangesAsync();
+            SaveCartToSession(shoppingCart); // Update session
         }
 
-        // Remove an item from the cart
-        public async Task RemoveItemFromCartAsync(string userId, int cartItemId)
+        public async Task RemoveItemFromCartAsync(int cartItemId)
         {
-            var cart = await GetCartByUserIdAsync(userId);
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("User not logged in.");
+            }
+
+            var cart = await GetCartByUserIdAsync();
 
             if (cart == null)
             {
@@ -86,6 +128,7 @@ namespace eCommerceApp.Services
                 _context.ShoppingCartItem.Remove(item); // Remove from DbContext
                 cart.Items.Remove(item); // Remove from list
                 await _context.SaveChangesAsync();
+                SaveCartToSession(cart); // Update session
             }
             else
             {
@@ -93,10 +136,15 @@ namespace eCommerceApp.Services
             }
         }
 
-        // Update item quantity in the cart
-        public async Task UpdateItemQuantityAsync(string userId, int cartItemId, int quantity)
+        public async Task UpdateItemQuantityAsync(int cartItemId, int quantity)
         {
-            var cart = await GetCartByUserIdAsync(userId);
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("User not logged in.");
+            }
+
+            var cart = await GetCartByUserIdAsync();
 
             if (cart == null)
             {
@@ -107,13 +155,45 @@ namespace eCommerceApp.Services
 
             if (item != null)
             {
-                item.Quantity = quantity;
+                if (quantity <= 0)
+                {
+                    cart.Items.Remove(item); // Remove item if quantity is zero or less
+                }
+                else
+                {
+                    item.Quantity = quantity;
+                }
                 await _context.SaveChangesAsync();
+                SaveCartToSession(cart); // Update session
             }
             else
             {
                 throw new KeyNotFoundException("Cart item not found");
             }
+        }
+
+        private ShoppingCart GetCartFromSession()
+        {
+            var sessionCartJson = HttpContext.Session.GetString(ShoppingCartSessionKey);
+            if (string.IsNullOrEmpty(sessionCartJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<ShoppingCart>(sessionCartJson);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        private void SaveCartToSession(ShoppingCart cart)
+        {
+            var cartJson = JsonSerializer.Serialize(cart);
+            HttpContext.Session.SetString(ShoppingCartSessionKey, cartJson);
         }
     }
 }

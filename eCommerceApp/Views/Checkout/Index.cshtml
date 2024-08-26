@@ -17,26 +17,36 @@
         <div class="row justify-content-center mt-5">
             <div class="col-md-8">
                 <h2>Select a Payment Option</h2>
-                <div class="list-group">
-                    @foreach (var option in Model)
-                    {
-                        <h5>@option.Name</h5>
-                        <p>@option.Description</p>
-                        @if (!string.IsNullOrEmpty(option.ImageUrl))
-                        {
-                            <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
-                        }
 
-                        <a href="@Url.Action("SelectPaymentOption", "Payment", new { id = option.Id })" class="list-group-item list-group-item-action">
-                            <h5>@option.Name</h5>
-                            <p>@option.Description</p>
-                            @if (!string.IsNullOrEmpty(option.ImageUrl))
-                            {
-                                <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
-                            }
-                        </a>
-                    }
-                </div>
+                @if (Model != null && Model.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var option in Model)
+                        {
+                            <a href="@Url.Action("SelectPaymentOption", "Payment", new { id = option.Id })" class="list-group-item list-group-item-action">
+                                <h5>@option.Name</h5>
+                                <p>@option.Description</p>
+
+                                @if (!string.IsNullOrEmpty(option.ImageUrl))
+                                {
+                                    <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
+                                }
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>No payment options available.</p>
+                }
+
+                <!-- Display the total price of the shopping cart -->
+                @if (ViewBag.TotalPrice != null)
+                {
+                    <div class="mt-4">
+                        <h4>Total Price: @ViewBag.TotalPrice.ToString("C")</h4>
+                    </div>
+                }
 
                 <!-- Buttons to direct to specific pages -->
                 <div class="mt-3">

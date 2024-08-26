@@ -31,6 +31,7 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
 builder.Services.AddScoped<UserService>();
 
+
 // Configure Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -39,8 +40,15 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
 
 // Middleware
 app.UseRouting();
