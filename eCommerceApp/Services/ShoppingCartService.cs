@@ -1,7 +1,9 @@
-﻿//using AspNetCore;
-using eCommerceApp.Data;
+﻿using eCommerceApp.Data;
 using eCommerceApp.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace eCommerceApp.Services
 {
@@ -14,6 +16,7 @@ namespace eCommerceApp.Services
             _context = context;
         }
 
+        // Get the user's cart based on user ID
         public async Task<ShoppingCart> GetCartByUserIdAsync(string userId)
         {
             return await _context.ShoppingCart
@@ -22,6 +25,7 @@ namespace eCommerceApp.Services
                                  .FirstOrDefaultAsync(sc => sc.UserId == userId);
         }
 
+        // Add an item to the cart
         public async Task AddItemToCartAsync(string userId, int productId, int quantity)
         {
             var shoppingCart = await GetCartByUserIdAsync(userId);
@@ -65,6 +69,7 @@ namespace eCommerceApp.Services
             await _context.SaveChangesAsync();
         }
 
+        // Remove an item from the cart
         public async Task RemoveItemFromCartAsync(string userId, int cartItemId)
         {
             var cart = await GetCartByUserIdAsync(userId);
@@ -88,6 +93,7 @@ namespace eCommerceApp.Services
             }
         }
 
+        // Update item quantity in the cart
         public async Task UpdateItemQuantityAsync(string userId, int cartItemId, int quantity)
         {
             var cart = await GetCartByUserIdAsync(userId);
@@ -109,12 +115,5 @@ namespace eCommerceApp.Services
                 throw new KeyNotFoundException("Cart item not found");
             }
         }
-
-
     }
-
-       
-
-
 }
-

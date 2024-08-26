@@ -18,10 +18,11 @@ namespace eCommerceApp.Controllers
         private readonly ProductService _productService;
         private string userId;
 
-        public HomeController(ILogger<HomeController> logger, ProductService productService)
+        public HomeController(ILogger<HomeController> logger, ProductService productService,ShoppingCartService shoppingCartService)
         {
             _logger = logger;
             _productService = productService;
+            _shoppingCartService = shoppingCartService;
             
         }
 
@@ -31,6 +32,27 @@ namespace eCommerceApp.Controllers
 
             
             return View(products);
+        }
+
+        public async Task<IActionResult> CheckCartAndRedirect()//string userId)
+        {
+            var userId = User.Identity.Name;
+
+            if (userId == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userCart = await _shoppingCartService.GetCartByUserIdAsync(userId);
+            if (userCart != null && userCart.Items.Any())
+            {
+                return RedirectToAction("CheckOut", "Checkout");
+            }
+            else
+            {
+                // Handle the case where the cart is null (e.g., return an error or redirect to a different page)
+                return RedirectToAction("CartEmpty", "ShoppingCart");
+            }
         }
 
         public IActionResult Privacy()
