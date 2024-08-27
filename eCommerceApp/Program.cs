@@ -30,7 +30,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
 builder.Services.AddScoped<UserService>();
-
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // Configure Session
 builder.Services.AddDistributedMemoryCache();

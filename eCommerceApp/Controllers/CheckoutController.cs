@@ -15,24 +15,30 @@ namespace eCommerceApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserService _userService;
         private readonly ShoppingCartService _shoppingCartService;
+        private readonly IPaymentService _paymentService;
 
-        public CheckOutController(ApplicationDbContext context, UserService userService, ShoppingCartService shoppingCartService)
+        public CheckOutController(ApplicationDbContext context, UserService userService, ShoppingCartService shoppingCartService, IPaymentService paymentService)
         {
             _context = context;
             _userService = userService;
             _shoppingCartService = shoppingCartService;
+            _paymentService = paymentService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return View();
+            var paymentOptions = await _paymentService.GetPaymentOptionsAsync();
+            return View(paymentOptions);
+            
         }
 
         public async Task<IActionResult> CheckOut()
         {
             var paymentOptions = await _context.PaymentOptions.ToListAsync();
+            var totalPrice = _paymentService.GetTotalPriceAsync();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            ViewBag.TotalPrice = totalPrice;
 
             if (userId == null)
             {
@@ -63,7 +69,7 @@ namespace eCommerceApp.Controllers
                 //?????
                 if (userCart != null)
                 {
-                    var totalPrice = userCart.Items.Sum(item => item.Quantity * item.UnitPrice);
+                    //var totalPrice = userCart.Items.Sum(item => item.Quantity * item.UnitPrice);
 
                     // Pass the cart and total price to the view
                     ViewBag.TotalPrice = totalPrice;

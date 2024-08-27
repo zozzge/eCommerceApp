@@ -87,10 +87,11 @@ namespace eCommerceApp.Controllers
         }
 
         [HttpPost]
+
         public async Task<IActionResult> Logout()
         {
-            await _userService.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Login", "Account");
         }
     }
 }

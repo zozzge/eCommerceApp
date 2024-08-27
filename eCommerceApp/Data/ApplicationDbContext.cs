@@ -14,9 +14,10 @@ namespace eCommerceApp.Data
         public DbSet<ShoppingCart> ShoppingCart { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItem { get; set; }
         public DbSet<User> User { get; set; }
-        public IEnumerable<object> ShoppingCartItems { get; internal set; }
+        public DbSet<ShoppingCartItem> ShoppingCartItems { get; internal set; }
 
         public DbSet<PaymentOptions> PaymentOptions { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
