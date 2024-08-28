@@ -1,4 +1,6 @@
-﻿using eCommerceApp.Services;
+﻿using eCommerceApp.Data;
+using eCommerceApp.Models;
+using eCommerceApp.Services;
 using eCommerceApp.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,85 +15,93 @@ namespace eCommerceApp.Controllers
     {
 
         private readonly UserService _userService;
-        
+        private readonly ApplicationDbContext _context;
+        private readonly SignInManager<User> _signInManager;
 
-        public AccountController(UserService userService)
+
+
+        public AccountController(UserService userService, ApplicationDbContext context,SignInManager<User> signInManager)
         {
 
             _userService = userService;
+            _context = context;
+            _signInManager = signInManager;
+
         }
 
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            var response = new LoginViewModel();
+            return View(response);
         }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userService.FindByEmailAsync(model.Email);
+
+            if (user != null)
             {
-                var result = await _userService.SignInAsync(model);
-
-                if (result.Succeeded)
+                //User is found, check password
+                var passwordCheck = await _userService.CheckPasswordAsync(user, model.Password);
+                if (passwordCheck)
                 {
-                    return Redirect(returnUrl ?? Url.Action("Index", "Checkout"));
+                    //Password correct, sign in
+                    var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("Index", "Checkout");
+                    }
                 }
-                else if (result.IsLockedOut)
-                {
-                    return View("Lockout");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                }
+                //Password is incorrect
+                TempData["Error"] = "Wrong credentials. Please try again";
+                return View(model);
             }
-
+            //User not found
+            TempData["Error"] = "Wrong credentials. Please try again";
             return View(model);
         }
 
         [HttpGet]
         public IActionResult Register(string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
+            var response = new RegisterViewModel();
+            return View(response);
         }
 
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model, string returnUrl = null)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userService.FindByEmailAsync(model.Email);
+            if (user != null)
             {
-                var result = await _userService.RegisterAsync(model);
-
-                if (result.Succeeded)
-                {
-                    var loginModel = new LoginViewModel
-                    {
-                        Email = model.Email,
-                        Password = model.Password
-                    };
-
-                    await _userService.SignInAsync(loginModel);
-                    return Redirect(returnUrl ?? Url.Action("Login", "Account"));
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+                TempData["Error"] = "This email address is already in use";
+                return View(model);
             }
 
-            return View(model);
+            var newUser = new User()
+            {
+                Email = model.Email,
+                UserName = model.Email
+            };
+            var newUserResponse = await _userService.CreateAsync(newUser, model.Password);
+
+            if (newUserResponse.Succeeded)
+                await _userService.AddToRoleAsync(newUser, UserRoles.User);
+
+            return RedirectToAction("Login", "Account");
         }
 
         [HttpPost]
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Login", "Account");
         }
     }

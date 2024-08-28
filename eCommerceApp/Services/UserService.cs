@@ -50,5 +50,28 @@ namespace eCommerceApp.Services
             _httpContextAccessor.HttpContext.Session.Remove("UserId");
             await _signInManager.SignOutAsync();
         }
+
+        public async Task<bool> CheckPasswordAsync(User user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        // Find a user by email
+        public async Task<User> FindByEmailAsync(string email)
+        {
+            return await _userManager.FindByEmailAsync(email);
+        }
+
+        // Create a new user
+        public async Task<IdentityResult> CreateAsync(User user, string password)
+        {
+            return await _userManager.CreateAsync(user, password);
+        }
+
+        // Add user to a role
+        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+        {
+            return await _userManager.AddToRoleAsync(user, role);
+        }
     }
 }
