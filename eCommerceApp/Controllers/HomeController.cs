@@ -1,6 +1,7 @@
 using eCommerceApp.Data;
 using eCommerceApp.Models;
 using eCommerceApp.Services;
+using eCommerceApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;

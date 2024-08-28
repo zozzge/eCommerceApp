@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace eCommerceApp.Models
+namespace eCommerceApp.ViewModels
 {
-    public class RegisterViewModel
+    public class LoginViewModel
     {
         [Required]
         [EmailAddress]
@@ -12,11 +12,7 @@ namespace eCommerceApp.Models
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        [DataType(DataType.Password)]
-        [Compare("Password")]
-        public string ConfirmPassword { get; set; }
-
-
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; } = false;
     }
 }
-

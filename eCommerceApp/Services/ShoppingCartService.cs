@@ -44,7 +44,7 @@ namespace eCommerceApp.Services
                 return sessionCart;
             }
 
-            var cart = await _context.ShoppingCart
+            var cart = await _context.ShoppingCarts
                                      .Include(sc => sc.Items)
                                      .ThenInclude(si => si.Product)
                                      .FirstOrDefaultAsync(sc => sc.UserId == userId);
@@ -74,10 +74,10 @@ namespace eCommerceApp.Services
                     UserId = userId,
                     Items = new List<ShoppingCartItem>()
                 };
-                _context.ShoppingCart.Add(shoppingCart);
+                _context.ShoppingCarts.Add(shoppingCart);
             }
 
-            var product = await _context.Product.FindAsync(productId);
+            var product = await _context.Products.FindAsync(productId);
 
             if (product == null)
             {
@@ -125,7 +125,7 @@ namespace eCommerceApp.Services
 
             if (item != null)
             {
-                _context.ShoppingCartItem.Remove(item); // Remove from DbContext
+                _context.ShoppingCartItems.Remove(item); // Remove from DbContext
                 cart.Items.Remove(item); // Remove from list
                 await _context.SaveChangesAsync();
                 SaveCartToSession(cart); // Update session

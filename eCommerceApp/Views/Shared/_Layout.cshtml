@@ -25,6 +25,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
+                        </form>
+
+
                        
                     </ul>
                 </div>
@@ -45,6 +50,28 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        function logout() {
+            fetch('@Url.Action("Logout", "Account")', {
+                method: 'POST', // Use POST if your action is a POST method
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin' // Include credentials like cookies in the request
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '@Url.Action("Index", "Home")'; // Redirect to home or any other page after logout
+                    } else {
+                        alert('Logout failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Logout failed. Please try again.');
+                });
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

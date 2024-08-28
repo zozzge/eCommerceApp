@@ -1,9 +1,16 @@
-﻿@model IEnumerable<PaymentOptions>
+﻿@model IEnumerable<eCommerceApp.Models.PaymentOptions>
 
 <h2>Checkout</h2>
 
 <div>
-    <h3>Total Price: @ViewBag.TotalPrice.ToString("C")</h3>
+    @if (ViewBag.TotalPrice != null)
+    {
+        <h3>Total Price: @ViewBag.TotalPrice.ToString("C")</h3>
+    }
+    else
+    {
+        <h3>Total Price: Not available</h3>
+    }
 </div>
 
 @if (Model != null && Model.Any())
@@ -11,7 +18,22 @@
     <div class="list-group">
         @foreach (var option in Model)
         {
-            <a href="@Url.Action("SelectPaymentOption", "Checkout", new { id = option.Id })" class="list-group-item list-group-item-action">
+            var actionName = string.Empty;
+
+            if (option.Name == "POS Widget")
+            {
+                actionName = "Widget"; // Action name for POS Widget
+            }
+            else if (option.Name == "POS White Label")
+            {
+                actionName = "WhiteLabel"; // Action name for Payment Page
+            }
+            else
+            {
+                actionName = "DefaultPage"; // Fallback or default action
+            }
+
+            <a href="@Url.Action(actionName,"Checkout", new { id = option.Id })" class="list-group-item list-group-item-action">
                 <h5>@option.Name</h5>
                 <p>@option.Description</p>
                 @if (!string.IsNullOrEmpty(option.ImageUrl))

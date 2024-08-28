@@ -1,5 +1,5 @@
-﻿using eCommerceApp.Models;
-using eCommerceApp.Services;
+﻿using eCommerceApp.Services;
+using eCommerceApp.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +13,7 @@ namespace eCommerceApp.Controllers
     {
 
         private readonly UserService _userService;
+        
 
         public AccountController(UserService userService)
         {

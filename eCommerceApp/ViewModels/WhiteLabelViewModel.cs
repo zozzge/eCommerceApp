@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace eCommerceApp.Models
+namespace eCommerceApp.ViewModels
 {
     public class WhiteLabelViewModel
     {

@@ -17,7 +17,7 @@ namespace eCommerceApp.Services
         {
             try
             {
-                return _context.Product.ToList();
+                return _context.Products.ToList();
             }
             catch (SqlException ex)
             {
@@ -29,7 +29,7 @@ namespace eCommerceApp.Services
 
         public Product GetProductById(int productId)
         {
-            return _context.Product.Find(productId);
+            return _context.Products.Find(productId);
         }
     }
 }

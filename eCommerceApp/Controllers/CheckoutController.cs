@@ -89,7 +89,7 @@ namespace eCommerceApp.Controllers
 
         private async Task<ShoppingCart> GetShoppingCartAsync(string cartId)
         {
-            return await _context.ShoppingCart
+            return await _context.ShoppingCarts
                 .Include(sc => sc.Items)
                 .FirstOrDefaultAsync(sc => sc.Id.ToString() == cartId);
         }
@@ -106,7 +106,7 @@ namespace eCommerceApp.Controllers
                     UserId = userId,
                     Items = new List<ShoppingCartItem>()
                 };
-                _context.ShoppingCart.Add(userCart);
+                _context.ShoppingCarts.Add(userCart);
                 await _context.SaveChangesAsync();
             }
 

@@ -30,7 +30,7 @@ namespace eCommerceApp.Controllers
         {
             var cartIdCookie = Request.Cookies["CartId"];
             int cartId;
-            var product = _context.Product.Find(productId);
+            var product = _context.Products.Find(productId);
             //int quantity1 = quantity + 1;
             if (quantity <= 0)
             {
@@ -54,13 +54,13 @@ namespace eCommerceApp.Controllers
                 {
                     UserId = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null
                 };
-                _context.ShoppingCart.Add(newCart);
+                _context.ShoppingCarts.Add(newCart);
                 _context.SaveChanges();
                 cartId = newCart.Id;
                 Response.Cookies.Append("CartId", cartId.ToString(), new CookieOptions { HttpOnly = true, Expires = DateTimeOffset.Now.AddDays(30) });
             }
 
-            var shoppingCart = _context.ShoppingCart
+            var shoppingCart = _context.ShoppingCarts
                 .Include(sc => sc.Items) // Ensure Items are included in the query
                 .FirstOrDefault(sc => sc.Id == cartId);
 
@@ -71,7 +71,7 @@ namespace eCommerceApp.Controllers
                     Id = cartId,
                     UserId = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null
                 };
-                _context.ShoppingCart.Add(shoppingCart);
+                _context.ShoppingCarts.Add(shoppingCart);
                 _context.SaveChanges();
             }
 
@@ -107,7 +107,7 @@ namespace eCommerceApp.Controllers
         public IActionResult RemoveFromCart(int productId)
         {
             var cartId = Request.Cookies["CartId"] ?? Guid.NewGuid().ToString();
-            var shoppingCart = _context.ShoppingCart
+            var shoppingCart = _context.ShoppingCarts
                 .Include(sc => sc.Items)
                 .FirstOrDefault(sc => sc.Id.ToString() == cartId);
 
@@ -128,7 +128,7 @@ namespace eCommerceApp.Controllers
                 shoppingCart.Items.Remove(itemToRemove);
 
                 // Remove the item from the ShoppingCartItems table
-                _context.ShoppingCartItem.Remove(itemToRemove);
+                _context.ShoppingCartItems.Remove(itemToRemove);
 
                 // Save changes to the database
                 _context.SaveChanges();

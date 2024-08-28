@@ -2,6 +2,7 @@
 using eCommerceApp.Data;
 using eCommerceApp.Models;
 using eCommerceApp.Services;
+using eCommerceApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -56,7 +57,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Error", "Home"); // Or any error handling
             }
 
-            var cart = await _context.ShoppingCart
+            var cart = await _context.ShoppingCarts
                 .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
                 .SingleOrDefaultAsync(c => c.Id == cartId);
@@ -96,7 +97,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            var cart = await _context.ShoppingCart
+            var cart = await _context.ShoppingCarts
                 .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
                 .SingleOrDefaultAsync(c => c.Id == cartId);
@@ -108,7 +109,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            var product = await _context.Product.FindAsync(productId);
+            var product = await _context.Products.FindAsync(productId);
 
             if (product == null || quantity <= 0)
             {
@@ -150,7 +151,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            var cart = await _context.ShoppingCart
+            var cart = await _context.ShoppingCarts
                 .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
                 .SingleOrDefaultAsync(c => c.Id == cartId);
@@ -183,7 +184,7 @@ namespace eCommerceApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            var cart = await _context.ShoppingCart
+            var cart = await _context.ShoppingCarts
                 .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
                 .SingleOrDefaultAsync(c => c.Id == cartId);

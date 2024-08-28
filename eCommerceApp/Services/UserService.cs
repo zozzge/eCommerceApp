@@ -2,6 +2,7 @@
 using eCommerceApp.Models;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using eCommerceApp.ViewModels;
 
 namespace eCommerceApp.Services
 {
