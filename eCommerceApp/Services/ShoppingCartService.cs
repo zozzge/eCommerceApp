@@ -174,26 +174,25 @@ namespace eCommerceApp.Services
 
         private ShoppingCart GetCartFromSession()
         {
-            var sessionCartJson = HttpContext.Session.GetString(ShoppingCartSessionKey);
-            if (string.IsNullOrEmpty(sessionCartJson))
+            var cartJson = HttpContext.Session.GetString("ShoppingCart");
+            if (string.IsNullOrEmpty(cartJson))
             {
-                return null;
+                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
             }
-
             try
             {
-                return JsonSerializer.Deserialize<ShoppingCart>(sessionCartJson);
+                return JsonSerializer.Deserialize<ShoppingCart>(cartJson);
             }
             catch (JsonException)
             {
-                return null;
+                return new ShoppingCart { Items = new List<ShoppingCartItem>() };
             }
         }
 
         private void SaveCartToSession(ShoppingCart cart)
         {
             var cartJson = JsonSerializer.Serialize(cart);
-            HttpContext.Session.SetString(ShoppingCartSessionKey, cartJson);
+            HttpContext.Session.SetString("ShoppingCart", cartJson);
         }
     }
 }

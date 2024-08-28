@@ -89,12 +89,25 @@ namespace eCommerceApp.Controllers
                 Email = model.Email,
                 UserName = model.Email
             };
+
             var newUserResponse = await _userService.CreateAsync(newUser, model.Password);
 
             if (newUserResponse.Succeeded)
-                await _userService.AddToRoleAsync(newUser, UserRoles.User);
+            {
+                TempData["Success"] = "Registration successful. Please log in.";
+                return RedirectToAction("Login", "Account");
+            }
 
-            return RedirectToAction("Login", "Account");
+            foreach (var error in newUserResponse.Errors)
+            {
+                TempData["Error"] = error.Description;
+            }
+
+            return View(model);
+
+
+
+
         }
 
         [HttpPost]

@@ -65,7 +65,7 @@ namespace eCommerceApp.Controllers
             if (cart == null)
             {
                 // Handle case where cart is not found
-                return RedirectToAction("Error", "Home"); // Or any error handling
+                return RedirectToAction("EmptyCart", "ShoppingCart"); // Or any error handling
             }
 
             var viewModel = new ShoppingCartViewModel
