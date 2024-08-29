@@ -1,32 +1,26 @@
-﻿using eCommerceApp.Data;
-using eCommerceApp.Models;
-using eCommerceApp.Services;
-using eCommerceApp.ViewModels;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using eCommerceApp.Data;
 using System.Threading.Tasks;
+using eCommerceApp.Models;
+using eCommerceApp.ViewModels;
 
 namespace eCommerceApp.Controllers
 {
     public class AccountController : Controller
     {
-
-        private readonly UserService _userService;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly ApplicationDbContext _context;
-        private readonly SignInManager<User> _signInManager;
 
-
-
-        public AccountController(UserService userService, ApplicationDbContext context,SignInManager<User> signInManager)
+        public AccountController(
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
+            ApplicationDbContext context)
         {
-
-            _userService = userService;
-            _context = context;
+            _userManager = userManager;
             _signInManager = signInManager;
-
+            _context = context;
         }
 
         [HttpGet]
@@ -41,29 +35,30 @@ namespace eCommerceApp.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var user = await _userService.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user != null)
             {
-                //User is found, check password
-                var passwordCheck = await _userService.CheckPasswordAsync(user, model.Password);
+                // Check if password is correct
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, model.Password);
                 if (passwordCheck)
                 {
-                    //Password correct, sign in
-                    var result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+                    // Sign in using the username, not the user object
+                    var result = await _signInManager.PasswordSignInAsync(user.Email, model.Password, false, false);
                     if (result.Succeeded)
                     {
                         return RedirectToAction("Index", "Checkout");
                     }
                 }
-                //Password is incorrect
+                // Password is incorrect
                 TempData["Error"] = "Wrong credentials. Please try again";
                 return View(model);
             }
-            //User not found
+            // User not found
             TempData["Error"] = "Wrong credentials. Please try again";
             return View(model);
         }
+
 
         [HttpGet]
         public IActionResult Register(string returnUrl = null)
@@ -77,25 +72,35 @@ namespace eCommerceApp.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var user = await _userService.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null)
             {
                 TempData["Error"] = "This email address is already in use";
                 return View(model);
             }
 
-            var newUser = new User()
+            var newUser = new IdentityUser()
             {
                 Email = model.Email,
                 UserName = model.Email
             };
 
-            var newUserResponse = await _userService.CreateAsync(newUser, model.Password);
+            var newUserResponse = await _userManager.CreateAsync(newUser, model.Password);
 
             if (newUserResponse.Succeeded)
             {
-                TempData["Success"] = "Registration successful. Please log in.";
-                return RedirectToAction("Login", "Account");
+                // Sign in the user after successful registration
+                var signInResult = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, lockoutOnFailure: false);
+                if (signInResult.Succeeded)
+                {
+                    return RedirectToAction("Index", "Checkout");
+                }
+                else
+                {
+                    // Handle sign-in failure if necessary
+                    TempData["Error"] = "Registration successful, but unable to sign in.";
+                    return RedirectToAction("Login", "Account");
+                }
             }
 
             foreach (var error in newUserResponse.Errors)
@@ -104,14 +109,9 @@ namespace eCommerceApp.Controllers
             }
 
             return View(model);
-
-
-
-
         }
 
         [HttpPost]
-
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

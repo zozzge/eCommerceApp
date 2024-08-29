@@ -11,17 +11,24 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Configure Identity
-builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+// Configure Identity with modified options
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false; // Disable email confirmation requirement
+    options.Lockout.AllowedForNewUsers = false; // Disable lockout for new users
+    options.Password.RequireNonAlphanumeric = false; // Optional: Modify password requirements
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireDigit = false;
+})
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-//builder.Services.AddIdentity<User,IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
-
+// Add services to the container
+builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
 
-
-// Configure Authentication
+// Configure Authentication (Optional if using Identity)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -30,8 +37,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
 
-builder.Services.AddControllersWithViews();
-
+// Register custom services
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
 builder.Services.AddScoped<UserService>();
@@ -55,13 +61,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Middleware
+// Middleware configuration
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.UseSession();
-app.UseStaticFiles();
-app.UseHttpsRedirection();
 
 app.MapControllerRoute(
     name: "default",

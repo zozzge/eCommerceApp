@@ -1,32 +1,33 @@
 ﻿using eCommerceApp.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace eCommerceApp.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<User>
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
-
         }
+
+        // DbSet properties for your application-specific models
         public DbSet<Product> Products { get; set; }
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
         public DbSet<PaymentOptions> PaymentOptions { get; set; }
-        //public DbSet<User> Users { get; set; }
-        //public DbSet<ShoppingCartItem> ShoppingCartItem { get; internal set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Call the base method to ensure Identity configurations are applied
             base.OnModelCreating(modelBuilder);
 
+            // Configure relationships and behaviors for ShoppingCart and ShoppingCartItem
             modelBuilder.Entity<ShoppingCart>()
-            .HasMany(sc => sc.Items)
-            .WithOne(si => si.ShoppingCart)
-            .HasForeignKey(si => si.ShoppingCartId)
-            .OnDelete(DeleteBehavior.Cascade); // Adjust delete behavior as needed
+                .HasMany(sc => sc.Items)
+                .WithOne(si => si.ShoppingCart)
+                .HasForeignKey(si => si.ShoppingCartId)
+                .OnDelete(DeleteBehavior.Cascade); // Adjust delete behavior as needed
 
             modelBuilder.Entity<ShoppingCartItem>()
                 .HasOne(si => si.Product)
@@ -34,12 +35,10 @@ namespace eCommerceApp.Data
                 .HasForeignKey(si => si.ProductId)
                 .OnDelete(DeleteBehavior.Restrict); // Adjust delete behavior as needed
 
-            // Configure User entity if necessary
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.Id);
+            // If you need to add additional configuration for IdentityUser, do it here.
+            // For example:
+            // modelBuilder.Entity<IdentityUser>()
+            //     .ToTable("AspNetUsers");
         }
-
     }
-
-
 }

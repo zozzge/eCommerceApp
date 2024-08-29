@@ -8,11 +8,11 @@ namespace eCommerceApp.Services
 {
     public class UserService
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(UserManager<User> userManager, SignInManager<User> signInManager, IHttpContextAccessor httpContextAccessor)
+        public UserService(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -22,7 +22,7 @@ namespace eCommerceApp.Services
         // Register a new user
         public async Task<IdentityResult> RegisterAsync(RegisterViewModel model)
         {
-            var user = new User
+            var user = new IdentityUser
             {
                 UserName = model.Email,
                 Email = model.Email
@@ -51,25 +51,25 @@ namespace eCommerceApp.Services
             await _signInManager.SignOutAsync();
         }
 
-        public async Task<bool> CheckPasswordAsync(User user, string password)
+        public async Task<bool> CheckPasswordAsync(IdentityUser user, string password)
         {
             return await _userManager.CheckPasswordAsync(user, password);
         }
 
         // Find a user by email
-        public async Task<User> FindByEmailAsync(string email)
+        public async Task<IdentityUser> FindByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
         }
 
         // Create a new user
-        public async Task<IdentityResult> CreateAsync(User user, string password)
+        public async Task<IdentityResult> CreateAsync(IdentityUser user, string password)
         {
             return await _userManager.CreateAsync(user, password);
         }
 
         // Add user to a role
-        public async Task<IdentityResult> AddToRoleAsync(User user, string role)
+        public async Task<IdentityResult> AddToRoleAsync(IdentityUser user, string role)
         {
             return await _userManager.AddToRoleAsync(user, role);
         }

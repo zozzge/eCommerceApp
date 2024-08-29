@@ -11,16 +11,56 @@ namespace eCommerceApp.Controllers
     {
         private readonly ProductService _productService;
         private readonly ApplicationDbContext _context;
+        
 
         public ProductController(ProductService productService, ApplicationDbContext context)
         {
             _productService = productService;
             _context = context;
+            
         }
 
         public IActionResult Index()
         {
             List<Product> products = (List<Product>)_productService.GetAllProducts();
+
+            var cartIdCookie = Request.Cookies["CartId"];
+            int cartId;
+            if (cartIdCookie != null && int.TryParse(cartIdCookie, out cartId))
+            {
+                var shoppingCart = _context.ShoppingCarts
+                    .Include(sc => sc.Items)
+                    .ThenInclude(i => i.Product)
+                    .FirstOrDefault(sc => sc.Id == cartId);
+
+                if (shoppingCart != null)
+                {
+                    // Create a dictionary for easy lookup
+                    var cartItems = shoppingCart.Items.ToDictionary(i => i.ProductId, i =>i.Quantity);
+
+                    // Populate QuantityInCart for each product
+                    foreach (var product in products)
+                    {
+                        if (cartItems.TryGetValue(product.Id, out int? quantity))
+                        {
+                            product.QuantityInCart = quantity ?? 0;
+                        }
+                        else
+                        {
+                            product.QuantityInCart = 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // No cart found; all quantities are 0
+                foreach (var product in products)
+                {
+                    product.QuantityInCart = 0;
+                }
+            }
+
             return View(products);
         }
 
@@ -31,7 +71,7 @@ namespace eCommerceApp.Controllers
             var cartIdCookie = Request.Cookies["CartId"];
             int cartId;
             var product = _context.Products.Find(productId);
-            //int quantity1 = quantity + 1;
+            
             if (quantity <= 0)
             {
                 TempData["ErrorMessage"] = "Invalid quantity.";
@@ -68,6 +108,7 @@ namespace eCommerceApp.Controllers
             {
                 shoppingCart = new ShoppingCart
                 {
+                    //
                     Id = cartId,
                     UserId = User.Identity.IsAuthenticated ? User.FindFirst(ClaimTypes.NameIdentifier)?.Value : null
                 };
