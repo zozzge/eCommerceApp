@@ -38,6 +38,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 // Register custom services
+
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
 builder.Services.AddScoped<UserService>();
@@ -52,6 +53,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

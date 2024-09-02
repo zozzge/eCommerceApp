@@ -1,23 +1,8 @@
 ﻿@{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Payment Error";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
-</head>
-<body>
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-8">
-                <h2>Error</h2>
-                <p>Something went wrong. Please try again later.</p>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+<h1>Payment Failed</h1>
+<p>There was an error processing your payment.</p>
+<p>Error Code: @ViewBag.ErrorCode</p>
+<p>Error Description: @ViewBag.ErrorDesc</p>

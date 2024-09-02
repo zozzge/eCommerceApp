@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -81,8 +82,13 @@ namespace eCommerceApp.Controllers
                 }).ToList()
             };
 
-            ViewBag.TotalPrice = viewModel.Items.Sum(item => item.TotalPrice);
+            var totalPrice = viewModel.Items.Sum(item => item.TotalPrice);
+            ViewBag.TotalPrice = totalPrice;
 
+            // Save the total price in TempData
+            TempData["TotalPrice"] = totalPrice.ToString(CultureInfo.InvariantCulture);
+
+            //return View(viewModel);
             return View(viewModel);
         }
 

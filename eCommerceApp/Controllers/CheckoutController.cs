@@ -1,9 +1,11 @@
 ﻿using eCommerceApp.Data;
 using eCommerceApp.Models;
 using eCommerceApp.Services;
+using eCommerceApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -28,17 +30,44 @@ namespace eCommerceApp.Controllers
         public async Task<IActionResult> Index()
         {
             var paymentOptions = await _paymentService.GetPaymentOptionsAsync();
+
+            // Retrieve the total price from TempData
+            if (TempData.ContainsKey("TotalPrice"))
+            {
+                if (TempData["TotalPrice"] is string decimalString)
+                {
+                    // Parse the string to decimal
+                    if (Decimal.TryParse(decimalString, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal totalPrice))
+                    {
+                        ViewBag.TotalPrice = totalPrice;
+                    }
+                    else
+                    {
+                        // Handle the case where parsing fails
+                        ViewBag.TotalPrice = 0.0m; // or some default value
+                    }
+                }
+            }
+
             return View(paymentOptions);
-            
+
         }
 
         public async Task<IActionResult> CheckOut()
         {
             var paymentOptions = await _context.PaymentOptions.ToListAsync();
-            var totalPrice = _paymentService.GetTotalPriceAsync();
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            ViewBag.TotalPrice = totalPrice;
+            
+
+            // Handle TempData for TotalPrice
+            if (TempData.ContainsKey("TotalPrice"))
+            {
+                string decimalString = TempData["TotalPrice"].ToString();
+                decimal totalPrice = Decimal.Parse(decimalString, CultureInfo.InvariantCulture);
+
+                ViewBag.TotalPrice = totalPrice; // Use 'totalPrice' variable instead of TempData directly
+            }
 
             if (userId == null)
             {
@@ -69,21 +98,16 @@ namespace eCommerceApp.Controllers
                 //?????
                 if (userCart != null)
                 {
-                    //var totalPrice = userCart.Items.Sum(item => item.Quantity * item.UnitPrice);
-
-                    // Pass the cart and total price to the view
-                    ViewBag.TotalPrice = totalPrice;
-
-                    return View("CheckOut", paymentOptions);
+                    return View("CheckOut", new { PaymentOptions = paymentOptions, TotalPrice = ViewBag.TotalPrice });
                 }
                 else
                 {
                     // No cart found for the user
                     return RedirectToAction("Index", "Home");
                 }
+
             }
 
-            // In case no condition is met
             return RedirectToAction("Index", "Home");
         }
 
@@ -134,5 +158,7 @@ namespace eCommerceApp.Controllers
 
             await _context.SaveChangesAsync();
         }
+
+        
     }
 }

@@ -5,7 +5,7 @@
 <div>
     @if (ViewBag.TotalPrice != null)
     {
-        <h3>Total Price: @ViewBag.TotalPrice.ToString("C")</h3>
+        <h3>Total Price: @ViewBag.TotalPrice</h3>
     }
     else
     {
@@ -18,22 +18,14 @@
     <div class="list-group">
         @foreach (var option in Model)
         {
-            var actionName = string.Empty;
+            var actionName = option.Name switch
+            {
+                "POS Widget" => "PaymentWidget",
+                "POS White Label" => "WhiteLabel",
+                _ => "DefaultPage"
+            };
 
-            if (option.Name == "POS Widget")
-            {
-                actionName = "Widget"; // Action name for POS Widget
-            }
-            else if (option.Name == "POS White Label")
-            {
-                actionName = "WhiteLabel"; // Action name for Payment Page
-            }
-            else
-            {
-                actionName = "DefaultPage"; // Fallback or default action
-            }
-
-            <a href="@Url.Action(actionName,"Checkout", new { id = option.Id })" class="list-group-item list-group-item-action">
+            <a href="@Url.Action(actionName, "Payment", new { id = option.Id })" class="list-group-item list-group-item-action">
                 <h5>@option.Name</h5>
                 <p>@option.Description</p>
                 @if (!string.IsNullOrEmpty(option.ImageUrl))

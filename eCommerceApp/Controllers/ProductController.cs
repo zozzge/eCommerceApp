@@ -11,11 +11,13 @@ namespace eCommerceApp.Controllers
     {
         private readonly ProductService _productService;
         private readonly ApplicationDbContext _context;
+        private readonly ShoppingCartService _shoppingCartService;
         
 
-        public ProductController(ProductService productService, ApplicationDbContext context)
+        public ProductController(ProductService productService, ApplicationDbContext context, ShoppingCartService shoppingCartService)
         {
             _productService = productService;
+            _shoppingCartService = shoppingCartService;
             _context = context;
             
         }
