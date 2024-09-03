@@ -208,7 +208,7 @@ namespace eCommerceApp.Controllers
             {
                 if (quantity <= 0)
                 {
-                    cart.Items.Remove(itemToUpdate); // Remove item if quantity is zero or less
+                    cart.Items.Remove(itemToUpdate);
                 }
                 else
                 {

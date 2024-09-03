@@ -1,11 +1,11 @@
-﻿@model IEnumerable<eCommerceApp.ViewModels.PaymentOptionsViewModel>
+﻿@model eCommerceApp.ViewModels.PaymentOptionsViewModel
 
 <h2>Checkout</h2>
 
 <div>
-    @if (ViewBag.TotalPrice != null)
+    @if (Model.TotalPrice != null)
     {
-        <h3>Total Price: @ViewBag.TotalPrice</h3>
+        <h3>Total Price: @Model.TotalPrice</h3>
     }
     else
     {
@@ -13,33 +13,19 @@
     }
 </div>
 
-@if (Model != null && Model.Any())
+@if (Model.PaymentOptions != null && Model.PaymentOptions.Any())
 {
     <div class="list-group">
-        @foreach (var option in Model)
+        @foreach (var option in Model.PaymentOptions)
         {
-            if (option.Name == "POS Widget")
-            {
-                <a href="@Url.Action("PaymentWidget", "Payment")" class="list-group-item list-group-item-action">
-                    <h5>@option.Name</h5>
-                    <p>@option.Description</p>
-                    @if (!string.IsNullOrEmpty(option.ImageUrl))
-                    {
-                        <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
-                    }
-                </a>
-            }
-            else if (option.Name == "POS WhiteLabel")
-            {
-                <a href="@Url.Action("WhiteLabel", "Payment")" class="list-group-item list-group-item-action">
-                    <h5>@option.Name</h5>
-                    <p>@option.Description</p>
-                    @if (!string.IsNullOrEmpty(option.ImageUrl))
-                    {
-                        <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
-                    }
-                </a>
-            }
+            <a href="@Url.Action(option.Name == "POS Widget" ? "PaymentWidget" : "WhiteLabel", "Payment")" class="list-group-item list-group-item-action">
+                <h5>@option.Name</h5>
+                <p>@option.Description</p>
+                @if (!string.IsNullOrEmpty(option.ImageUrl))
+                {
+                    <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
+                }
+            </a>
         }
     </div>
 }

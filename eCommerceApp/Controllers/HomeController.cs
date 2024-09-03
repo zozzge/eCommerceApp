@@ -19,19 +19,56 @@ namespace eCommerceApp.Controllers
         private readonly ProductService _productService;
         private string userId;
 
-        public HomeController(ILogger<HomeController> logger, ProductService productService,ShoppingCartService shoppingCartService)
+        public HomeController(ILogger<HomeController> logger, ProductService productService, ShoppingCartService shoppingCartService, ApplicationDbContext context)
         {
             _logger = logger;
             _productService = productService;
             _shoppingCartService = shoppingCartService;
-            
+            _context = context;
+
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Product> products = (List<Product>)_productService.GetAllProducts();
+            List<Product> products = (List<Product>)_productService.GetAllProducts() ?? new List<Product>();
 
-            
+            var cartIdCookie = Request.Cookies["CartId"];
+            int cartId;
+            if (cartIdCookie != null && int.TryParse(cartIdCookie, out cartId))
+            {
+                var shoppingCart = await _context.ShoppingCarts
+                    .Include(sc => sc.Items)
+                    .ThenInclude(i => i.Product)
+                    .FirstOrDefaultAsync(sc => sc.Id == cartId);
+
+                if (shoppingCart != null)
+                {
+                    // Create a dictionary for easy lookup
+                    var cartItems = shoppingCart.Items.ToDictionary(i => i.ProductId, i => i.Quantity ?? 0);
+
+                    // Populate QuantityInCart for each product
+                    foreach (var product in products)
+                    {
+                        if (cartItems.TryGetValue(product.Id, out int quantity))
+                        {
+                            product.QuantityInCart = quantity;
+                        }
+                        else
+                        {
+                            product.QuantityInCart = 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // No cart found; all quantities are 0
+                foreach (var product in products)
+                {
+                    product.QuantityInCart = 0;
+                }
+            }
+
             return View(products);
         }
 
@@ -66,7 +103,13 @@ namespace eCommerceApp.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+
+
+
     }
-}
+} 
+
+
 
 

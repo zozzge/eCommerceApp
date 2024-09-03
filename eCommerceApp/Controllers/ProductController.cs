@@ -45,7 +45,7 @@ namespace eCommerceApp.Controllers
                     {
                         if (cartItems.TryGetValue(product.Id, out int? quantity))
                         {
-                            product.QuantityInCart = quantity ?? 0;
+                            product.QuantityInCart = quantity;
                         }
                         else
                         {

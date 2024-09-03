@@ -46,14 +46,14 @@
                                 </form>
 
                                 <form method="post" action="@Url.Action("RemoveFromCart", "Product")">
-                                    <input type="hidden" name="cartItemId" value="@product.Id" />
+                                    <input type="hidden" name="productId" value="@product.Id" />
                                     <button type="submit" class="btn btn-sm btn-outline-secondary">Delete</button>
                                 </form>
                             </div>
                             <strong class="text-muted">Price: @product.Price</strong>
-                            @* <div class="mt-2">
+                            <div class="mt-2">
                                 <small>Quantity in Cart: @product.QuantityInCart</small>
-                            </div> *@
+                            </div>
                         </div>
                     </div>
                 </div>

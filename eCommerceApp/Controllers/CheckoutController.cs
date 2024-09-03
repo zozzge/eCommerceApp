@@ -49,7 +49,13 @@ namespace eCommerceApp.Controllers
                 }
             }
 
-            return View(paymentOptions);
+            var viewModel = new PaymentOptionsViewModel
+            {
+                TotalPrice = ViewBag.TotalPrice,
+                PaymentOptions = paymentOptions
+            };
+
+            return View(viewModel);
 
         }
 

@@ -21,6 +21,7 @@
     <Compile Remove="Services\Interface.cs" />
     <Compile Remove="Services\LoginService.cs" />
     <Compile Remove="Services\RegisterService.cs" />
+    <Compile Remove="ViewModels\PaymentOptionViewModel.cs" />
   </ItemGroup>
 
   <ItemGroup>

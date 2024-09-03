@@ -38,9 +38,10 @@ namespace eCommerceApp.Controllers
         public async Task<IActionResult> PaymentOptions()
         {
             var paymentOptions = await _paymentService.GetPaymentOptionsAsync();
+
             var totalPriceFromTempData = TempData["TotalPrice"] != null
-        ? decimal.Parse(TempData["TotalPrice"].ToString().Trim('$')) // Remove currency symbol if needed
-        : (decimal?)null;
+                ? decimal.Parse(TempData["TotalPrice"].ToString().Trim('$')) 
+                : (decimal?)null;
 
             var viewModel = new PaymentOptionsViewModel
             {
@@ -84,33 +85,27 @@ namespace eCommerceApp.Controllers
 
             if (responseParams["Status"] == "1")
             {
-                // Redirect to PaymentPage with the hash value
                 var hash = responseParams["ErrorDesc"];
                 return Redirect($"{PaymentPageUrl}?hash={hash}");
             }
             else
             {
-                // Redirect to ErrorPage with error details
                 return RedirectToAction("ErrorPage", new { errorCode = responseParams["ErrorCode"], errorDesc = responseParams["ErrorDesc"] });
             }
         }
 
-        // Method to display the payment page
         public IActionResult PaymentPage(string hash)
         {
-            // Pass the hash to the view for PayByMe payment page
+            
             ViewBag.Hash = hash;
             return View();
         }
 
-        // Method to handle the payment result
+       
         public IActionResult RedirectPage()
         {
-            // Handle successful payment result
             return View();
         }
-
-        // Method to handle payment errors
         public IActionResult ErrorPage(string errorCode, string errorDesc)
         {
             ViewBag.ErrorCode = errorCode;
@@ -118,25 +113,12 @@ namespace eCommerceApp.Controllers
             return View();
         }
 
-        // Method to handle payment notifications
         [HttpPost]
         public IActionResult NotifyPage()
         {
-            // Acknowledge receipt of notification
+            
             return Content("OK");
         }
-        //public IActionResult WhiteLabel()
-        //{
-        //    var viewModel = new WhiteLabelViewModel(); // Adjust as needed
-        //    return View("WhiteLabel", viewModel);
-        //}
-
-        //public IActionResult Widget()
-        //{
-        //    var viewModel = new WidgetViewModel(); // Adjust as needed
-        //    return View("Widget", viewModel);
-        //}
-
-
+        
     }
 }

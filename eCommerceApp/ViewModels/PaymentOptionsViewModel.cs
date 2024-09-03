@@ -1,12 +1,11 @@
-﻿namespace eCommerceApp.ViewModels
+﻿using System.Collections;
+using System.Collections.Generic;
+using eCommerceApp.Models;
+namespace eCommerceApp.ViewModels
 {
     public class PaymentOptionsViewModel
     {
-
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string ImageUrl { get; set; }
         public decimal? TotalPrice { get; set; }
-        public IEnumerable<Models.PaymentOptions> PaymentOptions { get; set; }
+        public IEnumerable<PaymentOptions> PaymentOptions { get; set; }
     }
 }
