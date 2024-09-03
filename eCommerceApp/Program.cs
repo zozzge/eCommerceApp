@@ -54,6 +54,9 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+builder.Services.Configure<PaymentSettings>(builder.Configuration.GetSection("PaymentSettings"));
+
+
 
 var app = builder.Build();
 
@@ -73,6 +76,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseSession();
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",

@@ -18,14 +18,16 @@
     <div class="list-group">
         @foreach (var option in Model.PaymentOptions)
         {
-            <a href="@Url.Action(option.Name == "POS Widget" ? "PaymentWidget" : "WhiteLabel", "Payment")" class="list-group-item list-group-item-action">
+            <form asp-action="PaymentWidget" asp-controller="Payment" method="post" class="list-group-item list-group-item-action">
+                <input type="hidden" name="PaymentOption" value="@option.Name" />
                 <h5>@option.Name</h5>
                 <p>@option.Description</p>
                 @if (!string.IsNullOrEmpty(option.ImageUrl))
                 {
                     <img src="@option.ImageUrl" alt="@option.Name" style="max-width: 100px;" />
                 }
-            </a>
+                <button type="submit" class="btn btn-primary">Select</button>
+            </form>
         }
     </div>
 }

@@ -8,6 +8,7 @@ using System.Net.Http;
 using eCommerceApp.Services;
 using eCommerceApp.ViewModels;
 using System.Web;
+using Microsoft.Extensions.Options;
 
 namespace eCommerceApp.Controllers
 {
@@ -16,6 +17,7 @@ namespace eCommerceApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IPaymentService _paymentService;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly PaymentSettings _paymentSettings;
 
         private const string Username = "A49A8F35C812BD1CDEEB";
         private const string Token = "A49A8F35C812BD1CDEEBAF96992F145A";
@@ -23,11 +25,12 @@ namespace eCommerceApp.Controllers
         private const string RequestUrl = "https://testpos.payby.me/webpayment/Request.aspx";
         private const string PaymentPageUrl = "https://testpos.payby.me/webpayment/Pay.aspx";
 
-        public PaymentController(ApplicationDbContext context,IPaymentService paymentService, IHttpClientFactory httpClientFactory)
+        public PaymentController(ApplicationDbContext context, IPaymentService paymentService, IHttpClientFactory httpClientFactory, IOptions<PaymentSettings> paymentSettings)
         {
             _context = context;
             _paymentService = paymentService;
             _httpClientFactory = httpClientFactory;
+            _paymentSettings = paymentSettings.Value;
         }
 
         public IActionResult Index()
@@ -55,6 +58,9 @@ namespace eCommerceApp.Controllers
         [HttpPost]
         public async Task<IActionResult> PaymentWidget(PaymentRequestModel model)
         {
+            decimal? totalprice = await _paymentService.GetTotalPriceAsync();
+            int? totalprice2 = totalprice.HasValue ? (int?)totalprice.Value : null;
+
             var client = _httpClientFactory.CreateClient();
             var requestUrl = "https://testpos.payby.me/webpayment/Request.aspx"; // Replace with actual PayByMe request URL
 
@@ -64,17 +70,17 @@ namespace eCommerceApp.Controllers
                 { "token", Token },
                 { "syncId", model.SyncId.ToString() },
                 { "keywordId", KeywordId.ToString() },
-                { "subCompany", model.SubCompany },
-                { "assetName", model.AssetName },
-                { "assetPrice", model.AssetPrice.ToString() },
-                { "clientIp", model.ClientIp },
-                { "countryCode", model.CountryCode },
-                { "currencyCode", model.CurrencyCode },
-                { "languageCode", model.LanguageCode },
-                { "notifyPage", model.NotifyPage },
-                { "redirectPage", model.RedirectPage },
-                { "errorPage", model.ErrorPage },
-                { "paymentType", model.PaymentType }
+                { "subCompany", "ZeynepTech" },
+                { "assetName", "Elenktronik" },
+                { "assetPrice", totalprice2.ToString() },
+                { "clientIp", "176.236.74.26" },
+                { "countryCode", "TR" },
+                { "currencyCode", "TRY" },
+                { "languageCode", "try" },
+                { "notifyPage", "https://localhost:7181/Checkout" },
+                { "redirectPage", "https://localhost:7181/Checkout" },
+                { "errorPage", "https://localhost:7181/Checkout" },
+                { "paymentType", "vpos" }
             };
 
             var encodedContent = new FormUrlEncodedContent(parameters);
