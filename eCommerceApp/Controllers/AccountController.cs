@@ -26,8 +26,8 @@ namespace eCommerceApp.Controllers
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
-            var response = new LoginViewModel();
-            return View(response);
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
         }
 
         [HttpPost]

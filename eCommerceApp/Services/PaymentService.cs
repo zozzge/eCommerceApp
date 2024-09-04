@@ -18,11 +18,16 @@ namespace eCommerceApp.Services
             return await _context.PaymentOptions.ToListAsync();
         }
 
-        public async Task<decimal?> GetTotalPriceAsync()
+        public async Task<decimal?> GetTotalPriceAsync(int cartId)
         {
-            var cartItems = await _context.ShoppingCartItems.ToListAsync();
-            decimal? cartItemsSum = cartItems.Sum(item => item.UnitPrice * item.Quantity);
-            return cartItemsSum;
+            var cartItems = await _context.ShoppingCartItems
+                                  .Where(item => item.Id == cartId)
+                                  .ToListAsync();
+
+            decimal? totalPrice = cartItems.Sum(item => item.UnitPrice * item.Quantity);
+            return totalPrice;
         }
+
+        
     }
 }

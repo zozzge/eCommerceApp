@@ -16,11 +16,16 @@ namespace eCommerceApp.Data
         public DbSet<ShoppingCart> ShoppingCarts { get; set; }
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
         public DbSet<PaymentOptions> PaymentOptions { get; set; }
+        public DbSet<SyncIds> SyncIds { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Call the base method to ensure Identity configurations are applied
             base.OnModelCreating(modelBuilder);
+
+            // Configure SyncIdModel relationships and properties
+            modelBuilder.Entity<SyncIds>()
+                .HasKey(s => s.Id); // Configure primary key if necessary
 
             // Configure relationships and behaviors for ShoppingCart and ShoppingCartItem
             modelBuilder.Entity<ShoppingCart>()

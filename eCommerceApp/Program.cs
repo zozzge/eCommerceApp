@@ -43,6 +43,7 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<ShoppingCartService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ISyncIdService, SyncIdService>();
 
 // Configure Session
 builder.Services.AddDistributedMemoryCache();
