@@ -24,7 +24,20 @@ namespace eCommerceApp.Controllers
             _shoppingCartService = shoppingCartService;
             _context = context;
         }
-
+        public IActionResult ProceedToCheckout()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                // Redirect to the checkout page if the user is authenticated
+                return RedirectToAction("Index", "Checkout");
+            }
+            else
+            {
+                // Redirect to the login page if the user is not authenticated
+                // Include a returnUrl so the user can be redirected back to checkout after logging in
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Checkout") });
+            }
+        }
         public ShoppingCart GetCartFromSession()
         {
             var cartJson = HttpContext.Session.GetString("ShoppingCart");
